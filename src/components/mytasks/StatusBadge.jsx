@@ -8,14 +8,14 @@ function StatusBadge({ icon: Icon, label, value, color }) {
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${colors[color]} shadow-sm`}
+      className={`flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border ${colors[color]} shadow-sm`}
     >
-      <Icon size={16} />
-      <div>
-        <p className="text-[10px] font-medium opacity-80 uppercase tracking-wide">
+      <Icon size={14} className="sm:w-4 sm:h-4 flex-shrink-0" />
+      <div className="min-w-0">
+        <p className="text-[9px] sm:text-[10px] font-medium opacity-80 uppercase tracking-wide truncate">
           {label}
         </p>
-        <p className="text-lg font-bold">{value}</p>
+        <p className="text-base sm:text-lg font-bold">{value}</p>
       </div>
     </div>
   );

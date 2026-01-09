@@ -1,9 +1,9 @@
-import { FiFolder, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi"; // Pastikan FiFolder diimpor di sini
+import { FiFolder, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
 
 function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
   return (
     <article
-      className={`bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md border-l-4 hover:shadow-lg transition-all ${
+      className={`bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-md border-l-4 hover:shadow-lg transition-all ${
         overdue
           ? "border-red-500"
           : task.is_done
@@ -11,18 +11,18 @@ function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
           : "border-blue-500"
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <label className="flex gap-3 flex-1 cursor-pointer group">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <label className="flex gap-2 sm:gap-3 flex-1 cursor-pointer group">
           <div className="relative flex-shrink-0 mt-0.5">
             <input
               type="checkbox"
               checked={task.is_done}
-              onChange={() => toggleDone(task)} // Call toggleDone when checkbox is clicked
+              onChange={() => toggleDone(task)}
               className="sr-only peer"
             />
-            <div className="w-5 h-5 border-2 rounded border-gray-300 dark:border-gray-600 peer-checked:border-green-500 peer-checked:bg-green-500 transition-all duration-300 flex items-center justify-center group-hover:border-gray-400 dark:group-hover:border-gray-500">
+            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 rounded border-gray-300 dark:border-gray-600 peer-checked:border-green-500 peer-checked:bg-green-500 transition-all duration-300 flex items-center justify-center group-hover:border-gray-400 dark:group-hover:border-gray-500">
               <svg
-                className={`w-3 h-3 text-white transition-all duration-300 ${
+                className={`w-2.5 h-2.5 sm:w-3 sm:h-3 text-white transition-all duration-300 ${
                   task.is_done ? "scale-100 opacity-100" : "scale-0 opacity-0"
                 }`}
                 fill="none"
@@ -41,7 +41,7 @@ function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
 
           <div className="flex-1 min-w-0">
             <p
-              className={`font-semibold text-sm mb-1 transition-all ${
+              className={`font-semibold text-xs sm:text-sm mb-1 transition-all ${
                 overdue
                   ? "text-red-600 dark:text-red-400"
                   : task.is_done
@@ -56,19 +56,21 @@ function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
                 {task.description}
               </p>
             )}
-            <div className="flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md text-xs font-medium">
-                <FiFolder size={12} />
-                {task.category?.name || "Tanpa kategori"}
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <span className="inline-flex items-center gap-1 sm:gap-1.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium">
+                <FiFolder size={10} className="sm:w-3 sm:h-3" />
+                <span className="truncate max-w-[80px] sm:max-w-none">
+                  {task.category?.name || "Tanpa kategori"}
+                </span>
               </span>
               <span
-                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium ${
+                className={`inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium ${
                   overdue
                     ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400"
                     : "bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400"
                 }`}
               >
-                <FiCalendar size={12} />
+                <FiCalendar size={10} className="sm:w-3 sm:h-3" />
                 {new Date(task.due_date).toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "short",
@@ -79,20 +81,20 @@ function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
           </div>
         </label>
 
-        <div className="flex gap-1">
+        <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
           <button
-            className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/40 p-2 rounded-lg transition-all"
+            className="text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/40 p-1.5 sm:p-2 rounded-lg transition-all"
             onClick={() => setEditTask(task)}
             title="Edit"
           >
-            <FiEdit2 size={16} />
+            <FiEdit2 size={14} className="sm:w-4 sm:h-4" />
           </button>
           <button
-            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/40 p-2 rounded-lg transition-all"
-            onClick={() => deleteTask(task.id)} // Call deleteTask when delete button is clicked
+            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/40 p-1.5 sm:p-2 rounded-lg transition-all"
+            onClick={() => deleteTask(task.id)}
             title="Hapus"
           >
-            <FiTrash2 size={16} />
+            <FiTrash2 size={14} className="sm:w-4 sm:h-4" />
           </button>
         </div>
       </div>

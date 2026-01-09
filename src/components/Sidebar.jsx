@@ -14,6 +14,8 @@ import {
   ChevronRight,
   MessageCircle,
   HelpCircle,
+  Menu,
+  X,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -30,6 +32,7 @@ export default function Sidebar() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [activityCount, setActivityCount] = useState(0);
   const { totalUnreadMessages } = useChat();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   /* ================= FETCH FUNCTIONS ================= */
   const fetchTaskCount = async () => {
@@ -124,167 +127,229 @@ export default function Sidebar() {
     navigate("/login", { replace: true });
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
-    <aside
-      className="h-screen bg-white dark:bg-gray-900 flex flex-col border-r border-gray-200 dark:border-gray-700 sticky top-0 shadow-sm transition-all duration-300 ease-in-out relative"
-      style={{
-        width: isCollapsed ? 80 : 280,
-        transition: "width 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-      }}
-    >
-      {/* TOGGLE BUTTON - PINGGIR SIDEBAR */}
+    <>
+      {/* Mobile Menu Button - Fixed di kiri atas, sejajar dengan header */}
       <button
-        onClick={toggleSidebar}
-        className="absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full flex items-center justify-center hover:bg-yellow-400 hover:border-yellow-400 dark:hover:bg-yellow-500 dark:hover:border-yellow-500 transition-all duration-200 hover:scale-110 shadow-md z-50"
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center hover:from-yellow-500 hover:to-amber-600 transition-all shadow-lg hover:shadow-xl active:scale-95"
       >
-        {isCollapsed ? (
-          <ChevronRight
-            size={14}
-            className="text-gray-600 dark:text-gray-400"
-          />
+        {isMobileMenuOpen ? (
+          <X size={20} className="text-white" />
         ) : (
-          <ChevronLeft size={14} className="text-gray-600 dark:text-gray-400" />
+          <Menu size={20} className="text-white" />
         )}
       </button>
 
-      {/* TOP - LOGO */}
-      <div className="flex-shrink-0 px-4 py-5 border-b border-gray-100 dark:border-gray-800">
+      {/* Overlay untuk mobile */}
+      {isMobileMenuOpen && (
         <div
-          className="cursor-pointer group flex items-center justify-center"
-          onClick={() => navigate("/app")}
+          className="lg:hidden fixed inset-0 bg-black/60 z-40 backdrop-blur-sm"
+          onClick={closeMobileMenu}
+        />
+      )}
+
+      {/* Sidebar - Desktop & Mobile */}
+      <aside
+        className={`
+          h-screen bg-white dark:bg-gray-900 flex flex-col border-r border-gray-200 dark:border-gray-700 shadow-lg transition-all duration-300 ease-in-out
+          
+          /* Desktop - Sticky & Collapsible */
+          lg:sticky lg:top-0 lg:relative
+          
+          /* Mobile - Fixed & Full Width (280px) saat terbuka */
+          fixed top-0 left-0 z-50
+          ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0
+        `}
+        style={{
+          // Desktop: bisa collapse (80px atau 280px)
+          // Mobile: selalu 280px (full width dengan label)
+          width: window.innerWidth < 1024 ? 280 : isCollapsed ? 80 : 280,
+          transition:
+            "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease-in-out",
+        }}
+      >
+        {/* TOGGLE BUTTON - Desktop Only */}
+        <button
+          onClick={toggleSidebar}
+          className="hidden lg:flex absolute -right-3 top-1/2 transform -translate-y-1/2 w-6 h-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full items-center justify-center hover:bg-yellow-400 hover:border-yellow-400 dark:hover:bg-yellow-500 dark:hover:border-yellow-500 transition-all duration-200 hover:scale-110 shadow-md z-50"
         >
-          <div
-            className={`${
-              isCollapsed ? "w-11 h-11" : "w-10 h-10"
-            } rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105`}
-          >
-            <img
-              src="/logo.png"
-              alt="Organizo"
-              className="w-full h-full object-cover"
+          {isCollapsed ? (
+            <ChevronRight
+              size={14}
+              className="text-gray-600 dark:text-gray-400"
             />
-          </div>
-        </div>
-        {!isCollapsed && (
-          <div className="text-center mt-3">
-            <h1
-              className="text-lg font-bold text-gray-800 dark:text-gray-100 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors cursor-pointer"
-              onClick={() => navigate("/app")}
+          ) : (
+            <ChevronLeft
+              size={14}
+              className="text-gray-600 dark:text-gray-400"
+            />
+          )}
+        </button>
+
+        {/* TOP - LOGO */}
+        <div className="flex-shrink-0 px-4 py-5 border-b border-gray-100 dark:border-gray-800">
+          <div
+            className="cursor-pointer group flex items-center justify-center"
+            onClick={() => {
+              navigate("/app");
+              closeMobileMenu();
+            }}
+          >
+            <div
+              className={`${
+                isCollapsed && window.innerWidth >= 1024
+                  ? "w-11 h-11"
+                  : "w-10 h-10"
+              } rounded-xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105`}
             >
-              Organizo
-            </h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Task Manager
-            </p>
+              <img
+                src="/logo.png"
+                alt="Organizo"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
-        )}
-      </div>
-
-      {/* MIDDLE - MENU */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
-        <nav
-          className={`space-y-2 ${
-            isCollapsed ? "flex flex-col items-center" : ""
-          }`}
-        >
-          <SidebarItem
-            to="/app"
-            label="Dashboard"
-            icon={LayoutDashboard}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            to="/app/tasks"
-            label="Tugas Saya"
-            icon={CheckSquare}
-            badge={taskCount}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            to="/app/activities"
-            label="Kegiatan"
-            icon={Calendar}
-            badge={activityCount}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            to="/app/chat"
-            label="Chat"
-            icon={MessageCircle}
-            badge={totalUnreadMessages}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            to="/app/notifications"
-            label="Notifikasi"
-            icon={Bell}
-            badge={notificationCount}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            to="/app/categories"
-            label="Kategori"
-            icon={Tag}
-            isCollapsed={isCollapsed}
-          />
-          <SidebarItem
-            to="/app/help"
-            label="Bantuan"
-            icon={HelpCircle}
-            isCollapsed={isCollapsed}
-          />
-        </nav>
-      </div>
-
-      {/* BOTTOM - SETTINGS & LOGOUT */}
-      <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-        <div
-          className={`px-3 py-3 space-y-2 ${
-            isCollapsed ? "flex flex-col items-center" : ""
-          }`}
-        >
-          <SidebarItem
-            to="/app/settings"
-            label="Pengaturan"
-            icon={Settings}
-            isCollapsed={isCollapsed}
-          />
-          <button
-            onClick={toggleTheme}
-            className={`${
-              isCollapsed ? "w-12 h-12" : "w-full"
-            } flex items-center ${
-              isCollapsed ? "justify-center" : "gap-3"
-            } px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105`}
-          >
-            {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
-            {!isCollapsed && (
-              <span>{theme === "light" ? "Mode Gelap" : "Mode Terang"}</span>
-            )}
-          </button>
-          <button
-            onClick={handleLogout}
-            className={`${
-              isCollapsed ? "w-12 h-12" : "w-full"
-            } flex items-center ${
-              isCollapsed ? "justify-center" : "gap-3"
-            } px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 hover:scale-105`}
-          >
-            <LogOut size={20} />
-            {!isCollapsed && <span>Keluar</span>}
-          </button>
+          {/* Mobile: selalu tampil label, Desktop: tampil jika tidak collapsed */}
+          {(window.innerWidth < 1024 || !isCollapsed) && (
+            <div className="text-center mt-3">
+              <h1
+                className="text-lg font-bold text-gray-800 dark:text-gray-100 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors cursor-pointer"
+                onClick={() => {
+                  navigate("/app");
+                  closeMobileMenu();
+                }}
+              >
+                Organizo
+              </h1>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Task Manager
+              </p>
+            </div>
+          )}
         </div>
-      </div>
-    </aside>
+
+        {/* MIDDLE - MENU */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
+          <nav className="space-y-2">
+            <SidebarItem
+              to="/app"
+              label="Dashboard"
+              icon={LayoutDashboard}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/tasks"
+              label="Tugas Saya"
+              icon={CheckSquare}
+              badge={taskCount}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/activities"
+              label="Kegiatan"
+              icon={Calendar}
+              badge={activityCount}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/chat"
+              label="Chat"
+              icon={MessageCircle}
+              badge={totalUnreadMessages}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/notifications"
+              label="Notifikasi"
+              icon={Bell}
+              badge={notificationCount}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/categories"
+              label="Kategori"
+              icon={Tag}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/help"
+              label="Bantuan"
+              icon={HelpCircle}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+          </nav>
+        </div>
+
+        {/* BOTTOM - SETTINGS & LOGOUT */}
+        <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="px-3 py-3 space-y-2">
+            <SidebarItem
+              to="/app/settings"
+              label="Pengaturan"
+              icon={Settings}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <button
+              onClick={toggleTheme}
+              className={`${
+                isCollapsed && window.innerWidth >= 1024
+                  ? "w-12 h-12 justify-center"
+                  : "w-full"
+              } flex items-center ${
+                isCollapsed && window.innerWidth >= 1024 ? "" : "gap-3"
+              } px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105`}
+            >
+              {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+              {(window.innerWidth < 1024 || !isCollapsed) && (
+                <span>{theme === "light" ? "Mode Gelap" : "Mode Terang"}</span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                handleLogout();
+                closeMobileMenu();
+              }}
+              className={`${
+                isCollapsed && window.innerWidth >= 1024
+                  ? "w-12 h-12 justify-center"
+                  : "w-full"
+              } flex items-center ${
+                isCollapsed && window.innerWidth >= 1024 ? "" : "gap-3"
+              } px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 hover:scale-105`}
+            >
+              <LogOut size={20} />
+              {(window.innerWidth < 1024 || !isCollapsed) && (
+                <span>Keluar</span>
+              )}
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
 
 /* ===== SIDEBAR ITEM ===== */
-function SidebarItem({ to, label, icon: Icon, badge, isCollapsed }) {
+function SidebarItem({ to, label, icon: Icon, badge, isCollapsed, onClick }) {
   return (
     <NavLink
       to={to}
       end
+      onClick={onClick}
       className={({ isActive }) =>
         `flex items-center ${
           isCollapsed ? "justify-center w-12 h-12" : "justify-between"

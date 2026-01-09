@@ -11,6 +11,8 @@ import {
   Upload,
   X,
   Info,
+  Shield,
+  Key,
 } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -20,7 +22,7 @@ export default function Settings() {
 
   const [name, setName] = useState("");
   const [avatarUrl, setAvatarUrl] = useState(null);
-  const [avatarType, setAvatarType] = useState("generated"); // 'generated' or 'uploaded'
+  const [avatarType, setAvatarType] = useState("generated");
   const [avatarStyle, setAvatarStyle] = useState("bottts");
   const [uploadedFile, setUploadedFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,6 @@ export default function Settings() {
     setName(profile.full_name || "");
     setAvatarUrl(profile.avatar_url || null);
 
-    // Detect avatar type
     if (profile.avatar_url) {
       if (
         profile.avatar_url.includes("supabase") ||
@@ -51,7 +52,6 @@ export default function Settings() {
     const seed = name || user.email;
     let url = "";
 
-    // Boring Avatars - Modern & Beautiful
     switch (avatarStyle) {
       case "beam":
       case "bauhaus":
@@ -64,7 +64,6 @@ export default function Settings() {
         )}?colors=FBBF24,F59E0B,D97706,B45309,92400E`;
         break;
 
-      // DiceBear - More variety
       case "bottts":
       case "avataaars":
       case "adventurer":
@@ -78,7 +77,6 @@ export default function Settings() {
         )}`;
         break;
 
-      // UI Avatars - Simple text-based
       case "initials":
         url = `https://ui-avatars.com/api/?name=${encodeURIComponent(
           name || user.email
@@ -106,7 +104,6 @@ export default function Settings() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validasi file
     if (!file.type.startsWith("image/")) {
       Swal.fire({
         icon: "error",
@@ -118,7 +115,6 @@ export default function Settings() {
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      // 2MB
       Swal.fire({
         icon: "error",
         title: "File Terlalu Besar",
@@ -130,7 +126,6 @@ export default function Settings() {
 
     setUploadedFile(file);
 
-    // Preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setAvatarUrl(reader.result);
@@ -172,7 +167,6 @@ export default function Settings() {
     try {
       let finalAvatarUrl = avatarUrl;
 
-      // Jika uploaded file, upload ke Supabase Storage
       if (avatarType === "uploaded" && uploadedFile) {
         finalAvatarUrl = await uploadAvatarToStorage(uploadedFile);
       }
@@ -184,7 +178,6 @@ export default function Settings() {
 
       if (error) throw error;
 
-      // UPDATE GLOBAL CONTEXT
       setProfile((prev) => ({
         ...prev,
         avatar_url: finalAvatarUrl,
@@ -244,7 +237,6 @@ export default function Settings() {
       return;
     }
 
-    // UPDATE CONTEXT
     setProfile((prev) => ({
       ...prev,
       full_name: name.trim(),
@@ -261,29 +253,29 @@ export default function Settings() {
   };
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-5xl mx-auto space-y-6">
-        {/* ================= HEADER ================= */}
-        <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg">
-            <User className="text-white" size={24} />
+    <div className="min-h-screen p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+        {/* ================= HEADER - RESPONSIVE ================= */}
+        <div className="flex items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl bg-gradient-to-br from-yellow-400 to-amber-500 flex items-center justify-center shadow-lg flex-shrink-0">
+            <User className="text-white" size={20} />
           </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 truncate">
               Pengaturan Profil
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1 truncate">
               Kelola informasi dan preferensi akun Anda
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ================= LEFT COLUMN - AVATAR ================= */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* ================= LEFT COLUMN - AVATAR (RESPONSIVE) ================= */}
           <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-6 sticky top-6">
-              <div className="text-center mb-5">
-                <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-1">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-6 lg:sticky lg:top-6">
+              <div className="text-center mb-4 sm:mb-5">
+                <h3 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-100 mb-1">
                   Foto Profil
                 </h3>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -291,9 +283,9 @@ export default function Settings() {
                 </p>
               </div>
 
-              {/* Avatar Preview */}
-              <div className="relative group mb-6 flex justify-center">
-                <div className="w-40 h-40 rounded-full overflow-hidden bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/40 dark:to-orange-900/40 flex items-center justify-center border-4 border-yellow-400 dark:border-yellow-500 shadow-xl">
+              {/* Avatar Preview - Responsive */}
+              <div className="relative group mb-4 sm:mb-6 flex justify-center">
+                <div className="w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 rounded-full overflow-hidden bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/40 dark:to-orange-900/40 flex items-center justify-center border-4 border-yellow-400 dark:border-yellow-500 shadow-xl">
                   {avatarUrl ? (
                     <img
                       src={avatarUrl}
@@ -301,7 +293,7 @@ export default function Settings() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-5xl font-bold text-yellow-600 dark:text-yellow-400">
+                    <span className="text-4xl sm:text-5xl font-bold text-yellow-600 dark:text-yellow-400">
                       {user?.email?.charAt(0).toUpperCase()}
                     </span>
                   )}
@@ -314,52 +306,53 @@ export default function Settings() {
                       setUploadedFile(null);
                       setAvatarType("generated");
                     }}
-                    className="absolute top-0 right-1/2 translate-x-20 w-10 h-10 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-all"
+                    className="absolute top-0 right-1/2 translate-x-16 sm:translate-x-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center shadow-lg transition-all"
                     title="Hapus foto"
                   >
-                    <X size={18} />
+                    <X size={16} className="sm:w-[18px] sm:h-[18px]" />
                   </button>
                 )}
               </div>
 
-              {/* Avatar Type Tabs */}
-              <div className="flex gap-2 bg-gray-100 dark:bg-gray-700 p-1.5 rounded-xl mb-5">
+              {/* Avatar Type Tabs - Responsive */}
+              <div className="flex gap-1.5 sm:gap-2 bg-gray-100 dark:bg-gray-700 p-1 sm:p-1.5 rounded-lg sm:rounded-xl mb-4 sm:mb-5">
                 <button
                   onClick={() => setAvatarType("generated")}
-                  className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
+                  className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-3 rounded-md sm:rounded-lg text-xs sm:text-sm font-semibold transition-all ${
                     avatarType === "generated"
                       ? "bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-md"
                       : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                   }`}
                 >
-                  <Sparkles className="inline mr-1.5" size={16} />
-                  Generate
+                  <Sparkles className="inline mr-1 sm:mr-1.5" size={14} />
+                  <span className="hidden sm:inline">Generate</span>
+                  <span className="sm:hidden">Gen</span>
                 </button>
                 <button
                   onClick={() => setAvatarType("uploaded")}
-                  className={`flex-1 py-2.5 px-3 rounded-lg text-sm font-semibold transition-all ${
+                  className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-3 rounded-md sm:rounded-lg text-xs sm:text-sm font-semibold transition-all ${
                     avatarType === "uploaded"
                       ? "bg-white dark:bg-gray-600 text-gray-800 dark:text-gray-100 shadow-md"
                       : "text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100"
                   }`}
                 >
-                  <Upload className="inline mr-1.5" size={16} />
+                  <Upload className="inline mr-1 sm:mr-1.5" size={14} />
                   Upload
                 </button>
               </div>
 
-              {/* Avatar Controls */}
-              <div className="space-y-3">
+              {/* Avatar Controls - Responsive */}
+              <div className="space-y-2.5 sm:space-y-3">
                 {avatarType === "generated" ? (
                   <>
                     <div>
-                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                         Gaya Avatar
                       </label>
                       <select
                         value={avatarStyle}
                         onChange={(e) => setAvatarStyle(e.target.value)}
-                        className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
+                        className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-2.5 sm:px-3 py-2 sm:py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all"
                       >
                         <optgroup label="Boring Avatars (Modern)">
                           <option value="beam">Beam</option>
@@ -387,9 +380,9 @@ export default function Settings() {
 
                     <button
                       onClick={generateAvatar}
-                      className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white px-5 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                      className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 shadow-md hover:shadow-lg transition-all"
                     >
-                      <Sparkles size={18} />
+                      <Sparkles size={16} className="sm:w-[18px] sm:h-[18px]" />
                       Generate Avatar
                     </button>
                   </>
@@ -404,12 +397,12 @@ export default function Settings() {
                     />
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 px-5 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 dark:border-gray-600 transition-all"
+                      className="w-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 border-2 border-dashed border-gray-300 dark:border-gray-600 transition-all"
                     >
-                      <Upload size={18} />
+                      <Upload size={16} className="sm:w-[18px] sm:h-[18px]" />
                       Pilih Foto
                     </button>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                    <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 text-center">
                       JPG, PNG, atau GIF (Max 2MB)
                     </p>
                   </>
@@ -418,99 +411,100 @@ export default function Settings() {
                 <button
                   onClick={saveAvatar}
                   disabled={loading || !avatarUrl}
-                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white px-5 py-3 rounded-lg text-sm font-bold flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all"
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 shadow-md hover:shadow-lg transition-all"
                 >
-                  <Camera size={18} />
+                  <Camera size={16} className="sm:w-[18px] sm:h-[18px]" />
                   {loading ? "Menyimpan..." : "Simpan Avatar"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* ================= RIGHT COLUMN - PROFILE INFO ================= */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* ================= RIGHT COLUMN - PROFILE INFO (RESPONSIVE) ================= */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Account Information Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
-                  <User className="text-white" size={16} />
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
+              <div className="flex items-center gap-2 mb-4 sm:mb-5">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                  <User className="text-white" size={14} />
                 </div>
-                <h3 className="font-bold text-lg text-gray-800 dark:text-gray-100">
+                <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-gray-100">
                   Informasi Akun
                 </h3>
               </div>
 
-              <div className="space-y-5">
-                {/* Email */}
+              <div className="space-y-4 sm:space-y-5">
+                {/* Email - Responsive */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                    <Mail size={16} />
+                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    <Mail size={14} className="sm:w-4 sm:h-4" />
                     Email
                   </label>
-                  <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-700 dark:text-gray-300 font-medium">
+                  <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-700 dark:text-gray-300 font-medium break-all">
                     {user?.email}
                   </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
-                    <Info size={12} />
+                  <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-1 sm:mt-1.5 flex items-center gap-1">
+                    <Info size={10} className="sm:w-3 sm:h-3 flex-shrink-0" />
                     Email tidak dapat diubah
                   </p>
                 </div>
 
+                {/* User ID - Responsive */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                    <User size={16} />
+                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    <Key size={14} className="sm:w-4 sm:h-4" />
                     User ID
                   </label>
-                  <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-3 text-gray-700 dark:text-gray-300 font-mono font-bold text-lg tracking-wider">
+                  <div className="bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-gray-700 dark:text-gray-300 font-mono font-bold text-base sm:text-lg tracking-wider text-center">
                     {profile?.user_id || "Loading..."}
                   </div>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 flex items-center gap-1">
-                    <Info size={12} />
+                  <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 mt-1 sm:mt-1.5 flex items-center gap-1">
+                    <Shield size={10} className="sm:w-3 sm:h-3 flex-shrink-0" />
                     User ID unik Anda (tidak dapat diubah)
                   </p>
                 </div>
 
-                {/* Nama Lengkap */}
+                {/* Nama Lengkap - Responsive */}
                 <div>
-                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                    <User size={16} />
+                  <label className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
+                    <User size={14} className="sm:w-4 sm:h-4" />
                     Nama Lengkap
                   </label>
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Masukkan nama lengkap Anda"
-                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                    className="w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500"
                   />
                 </div>
               </div>
 
-              {/* Save Button */}
-              <div className="pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
+              {/* Save Button - Responsive */}
+              <div className="pt-4 sm:pt-6 mt-4 sm:mt-6 border-t border-gray-200 dark:border-gray-700">
                 <button
                   onClick={updateProfile}
                   disabled={loading}
-                  className="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg font-bold flex items-center gap-2 shadow-md hover:shadow-lg transition-all"
+                  className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 sm:gap-2 shadow-md hover:shadow-lg transition-all"
                 >
-                  <Save size={20} />
+                  <Save size={16} className="sm:w-5 sm:h-5" />
                   {loading ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
               </div>
             </div>
 
-            {/* Info Box */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-2xl p-5">
-              <div className="flex gap-4">
+            {/* Info Box - Responsive */}
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl sm:rounded-2xl p-4 sm:p-5">
+              <div className="flex gap-3 sm:gap-4">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                    <Info className="text-white" size={20} />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+                    <Info className="text-white" size={16} />
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm font-bold text-blue-900 dark:text-blue-200 mb-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs sm:text-sm font-bold text-blue-900 dark:text-blue-200 mb-1 sm:mb-2">
                     Tentang Avatar
                   </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                  <p className="text-[10px] sm:text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
                     Pilih antara avatar yang di-generate otomatis atau upload
                     foto sendiri. Avatar generated menggunakan{" "}
                     <span className="font-semibold">Boring Avatars</span> &{" "}

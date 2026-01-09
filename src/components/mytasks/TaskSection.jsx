@@ -7,20 +7,20 @@ function TaskSection({ title, icon: Icon, color, count, children }) {
 
   return (
     <section>
-      <div className="flex items-center gap-2 mb-4">
+      <div className="flex items-center gap-2 mb-3 sm:mb-4">
         <div
-          className={`w-8 h-8 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-md`}
+          className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-md flex-shrink-0`}
         >
-          <Icon className="text-white" size={16} />
+          <Icon className="text-white" size={14} />
         </div>
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+        <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 truncate">
           {title}{" "}
-          <span className="text-sm text-gray-400 dark:text-gray-500">
+          <span className="text-xs sm:text-sm text-gray-400 dark:text-gray-500">
             ({count})
           </span>
         </h2>
       </div>
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-3 sm:space-y-4">{children}</div>
     </section>
   );
 }

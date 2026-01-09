@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
+import {
+  CheckCircle,
+  Calendar,
+  Bell,
+  BarChart3,
+  Users,
+  Zap,
+  ArrowRight,
+  Star,
+  TrendingUp,
+  Shield,
+  Clock,
+} from "lucide-react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -8,6 +20,7 @@ import {
   LinearScale,
   PointElement,
   LineElement,
+  Title,
   Tooltip,
   Legend,
   Filler,
@@ -18,14 +31,15 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
+  Title,
   Tooltip,
   Legend,
   Filler
 );
 
 export default function Landing() {
-  // Simulasi data produktivitas minggu ini (7 hari terakhir)
   const [chartData, setChartData] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const days = [...Array(7)].map((_, i) => {
@@ -60,22 +74,23 @@ export default function Landing() {
     if (target) {
       target.scrollIntoView({ behavior: "smooth" });
     }
+    setMobileMenuOpen(false);
   }
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
-      {/* NAVBAR */}
+      {/* ================= NAVBAR - RESPONSIVE ================= */}
       <nav className="sticky top-0 bg-white border-b border-gray-200 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex justify-between items-center h-16">
           {/* Logo */}
           <Link
             to="/"
-            className="flex items-center gap-3 font-extrabold text-xl"
+            className="flex items-center gap-2 sm:gap-3 font-extrabold text-lg sm:text-xl"
           >
             <img
               src="/logo.png"
               alt="Organizo Logo"
-              className="w-10 h-10 rounded-xl object-cover shadow-md"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl object-cover shadow-md"
             />
             <div className="leading-tight">
               <div>Organizo</div>
@@ -85,8 +100,8 @@ export default function Landing() {
             </div>
           </Link>
 
-          {/* Menu */}
-          <div className="hidden md:flex space-x-8 font-medium text-gray-700">
+          {/* Desktop Menu */}
+          <div className="hidden lg:flex space-x-8 font-medium text-gray-700">
             <a
               href="#features"
               onClick={handleSmoothScroll}
@@ -110,8 +125,8 @@ export default function Landing() {
             </a>
           </div>
 
-          {/* Auth Buttons */}
-          <div className="flex items-center space-x-4">
+          {/* Desktop Auth Buttons */}
+          <div className="hidden lg:flex items-center space-x-4">
             <Link
               to="/login"
               className="text-gray-700 hover:text-yellow-500 font-semibold transition"
@@ -125,37 +140,113 @@ export default function Landing() {
               Daftar Gratis
             </Link>
           </div>
+
+          {/* Mobile Auth Buttons */}
+          <div className="flex lg:hidden items-center space-x-2">
+            <Link
+              to="/login"
+              className="text-gray-700 hover:text-yellow-500 font-semibold text-sm transition"
+            >
+              Masuk
+            </Link>
+            <Link
+              to="/register"
+              className="bg-yellow-400 hover:bg-yellow-500 text-white px-3 py-1.5 rounded-lg font-semibold text-sm shadow-md transition"
+            >
+              Daftar
+            </Link>
+          </div>
+
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden ml-2 p-2 rounded-lg hover:bg-gray-100 transition"
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="w-6 h-6 text-gray-700"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {mobileMenuOpen ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden bg-white border-t border-gray-200 shadow-lg">
+            <div className="px-4 py-4 space-y-3">
+              <a
+                href="#features"
+                onClick={handleSmoothScroll}
+                className="block text-gray-700 hover:text-yellow-500 font-medium py-2 transition"
+              >
+                Fitur
+              </a>
+              <a
+                href="#how-it-works"
+                onClick={handleSmoothScroll}
+                className="block text-gray-700 hover:text-yellow-500 font-medium py-2 transition"
+              >
+                Cara Kerja
+              </a>
+              <a
+                href="#benefits"
+                onClick={handleSmoothScroll}
+                className="block text-gray-700 hover:text-yellow-500 font-medium py-2 transition"
+              >
+                Keuntungan
+              </a>
+            </div>
+          </div>
+        )}
       </nav>
 
-      {/* HERO SECTION */}
-      <section className="bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-50 py-24 px-6 text-center">
+      {/* ================= HERO SECTION - RESPONSIVE ================= */}
+      <section className="bg-gradient-to-br from-yellow-50 via-orange-50 to-amber-50 py-16 sm:py-24 px-4 sm:px-6 text-center">
         <div className="max-w-4xl mx-auto">
-          <div className="inline-block bg-white/80 backdrop-blur-sm text-yellow-700 px-4 py-1.5 rounded-full text-sm font-semibold mb-6 shadow-sm border border-yellow-200">
+          <div className="inline-block bg-white/80 backdrop-blur-sm text-yellow-700 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-semibold mb-4 sm:mb-6 shadow-sm border border-yellow-200">
             Kelola Hidup Anda Lebih Baik
           </div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-4 sm:mb-6 leading-tight px-4">
             Produktivitas Dimulai
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-amber-600">
               Dari Organizo
             </span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-12 leading-relaxed">
+          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-8 sm:mb-12 leading-relaxed px-4">
             Platform manajemen tugas all-in-one yang membantu Anda mengorganisir
             pekerjaan, melacak deadline, dan meningkatkan produktivitas dengan
             cara yang sederhana dan elegan.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-5 max-w-md mx-auto">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-5 max-w-md mx-auto px-4">
             <Link
               to="/register"
-              className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:shadow-xl transition transform hover:scale-105 flex items-center justify-center gap-2"
+              className="bg-gradient-to-r from-yellow-400 to-amber-500 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold shadow-lg hover:shadow-xl transition transform hover:scale-105 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              Mulai Gratis Sekarang <ArrowRight size={20} />
+              Mulai Gratis Sekarang{" "}
+              <ArrowRight size={18} className="sm:w-5 sm:h-5" />
             </Link>
             <Link
               to="/login"
-              className="bg-white border border-gray-300 text-gray-800 px-8 py-3 rounded-2xl font-bold shadow hover:shadow-md transition"
+              className="bg-white border border-gray-300 text-gray-800 px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl font-bold shadow hover:shadow-md transition text-sm sm:text-base"
             >
               Lihat Demo
             </Link>
@@ -163,308 +254,430 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* FEATURES SECTION */}
+      {/* ================= FEATURES SECTION ================= */}
       <section id="features" className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto text-center mb-16">
-          <span className="inline-block bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-full text-xs font-semibold mb-4">
-            Fitur Unggulan
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">
-            Fitur Lengkap untuk Produktivitas Maksimal
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Semua yang Anda butuhkan untuk mengelola tugas dan waktu dalam satu
-            platform
-          </p>
-        </div>
-        <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 px-4">
-          <FeatureCard
-            icon="📋"
-            title="Manajemen Tugas"
-            description="Buat, edit, dan kelola tugas dengan mudah. Tandai prioritas, set deadline, dan kategorikan tugas sesuai kebutuhan Anda."
-            colorFrom="yellow-400"
-            colorTo="amber-500"
-          />
-          <FeatureCard
-            icon="📅"
-            title="Kalender Interaktif"
-            description="Visualisasi semua tugas Anda dalam kalender yang intuitif. Lihat jadwal harian, mingguan, dan bulanan dengan jelas."
-            colorFrom="blue-400"
-            colorTo="indigo-500"
-          />
-          <FeatureCard
-            icon="🔔"
-            title="Notifikasi Pintar"
-            description="Dapatkan pengingat otomatis untuk deadline yang mendekat. Jangan pernah lewatkan tugas penting lagi."
-            colorFrom="green-400"
-            colorTo="emerald-500"
-          />
-        </div>
-      </section>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold mb-4">
+              Fitur Unggulan Organizo
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Semua yang Anda butuhkan untuk mengelola tugas dan meningkatkan
+              produktivitas dalam satu platform
+            </p>
+          </div>
 
-      {/* HOW IT WORKS SECTION */}
-      <section
-        id="how-it-works"
-        className="py-20 px-6 bg-yellow-50 text-center max-w-7xl mx-auto"
-      >
-        <span className="inline-block bg-yellow-200 text-yellow-700 px-3 py-1.5 rounded-full text-xs font-semibold mb-4">
-          Cara Kerja
-        </span>
-        <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">
-          Mulai Produktif dalam 3 Langkah
-        </h2>
-        <p className="text-gray-600 max-w-2xl mx-auto mb-12">
-          Proses yang sederhana dan cepat untuk memulai
-        </p>
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <StepCard
-            number="1"
-            title="Daftar Gratis"
-            description="Buat akun dalam hitungan detik. Tidak perlu kartu kredit, langsung mulai menggunakan semua fitur."
-          />
-          <StepCard
-            number="2"
-            title="Tambah Tugas"
-            description="Mulai menambahkan tugas Anda. Set deadline, prioritas, dan kategori untuk setiap tugas."
-          />
-          <StepCard
-            number="3"
-            title="Tingkatkan Produktivitas"
-            description="Pantau progress, selesaikan tugas, dan lihat produktivitas Anda meningkat dari hari ke hari."
-          />
-        </div>
-      </section>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Feature 1 */}
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-yellow-100">
+              <div className="bg-yellow-400 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-md">
+                <CheckCircle className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Manajemen Tugas</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Buat, edit, dan kelola tugas dengan mudah. Atur prioritas dan
+                status untuk setiap tugas Anda.
+              </p>
+            </div>
 
-      {/* BENEFITS SECTION */}
-      <section
-        id="benefits"
-        className="py-20 px-6 bg-white max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center"
-      >
-        <div>
-          <span className="inline-block bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-xs font-semibold mb-4">
-            Keuntungan
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold mb-6">
-            Mengapa Memilih Organizo?
-          </h2>
-          <p className="text-gray-700 mb-10 max-w-lg leading-relaxed">
-            Lebih dari sekadar to-do list. Organizo adalah partner produktivitas
-            Anda yang membantu mencapai tujuan dengan lebih efisien.
-          </p>
-          <div className="space-y-6">
-            <BenefitItem
-              title="100% Gratis"
-              description="Semua fitur tersedia gratis tanpa batasan. Tidak ada biaya tersembunyi."
-              color="green"
-            />
-            <BenefitItem
-              title="Aman & Privat"
-              description="Data Anda terenkripsi dan aman. Kami menghargai privasi Anda."
-              color="blue"
-            />
-            <BenefitItem
-              title="Terus Berkembang"
-              description="Fitur baru ditambahkan secara berkala berdasarkan feedback pengguna."
-              color="purple"
-            />
-            <BenefitItem
-              title="Hemat Waktu"
-              description="Interface intuitif yang menghemat waktu Anda hingga 30% setiap hari."
-              color="orange"
-            />
+            {/* Feature 2 */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-blue-100">
+              <div className="bg-blue-500 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-md">
+                <Calendar className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Kalender Terintegrasi</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Lihat semua tugas dan kegiatan Anda dalam tampilan kalender yang
+                intuitif dan mudah digunakan.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-green-100">
+              <div className="bg-green-500 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-md">
+                <Bell className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Notifikasi Pintar</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Dapatkan pengingat otomatis untuk deadline dan tugas penting
+                agar tidak ada yang terlewat.
+              </p>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-purple-100">
+              <div className="bg-purple-500 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-md">
+                <BarChart3 className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Analitik Produktivitas</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Pantau progress dan produktivitas Anda dengan grafik dan
+                statistik yang detail.
+              </p>
+            </div>
+
+            {/* Feature 5 */}
+            <div className="bg-gradient-to-br from-red-50 to-orange-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-red-100">
+              <div className="bg-red-500 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-md">
+                <Users className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Kolaborasi Tim</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Bekerja sama dengan tim Anda, bagikan tugas, dan pantau progress
+                bersama-sama.
+              </p>
+            </div>
+
+            {/* Feature 6 */}
+            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 p-8 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-105 border border-teal-100">
+              <div className="bg-teal-500 w-14 h-14 rounded-xl flex items-center justify-center mb-5 shadow-md">
+                <Zap className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-3">Cepat & Responsif</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Interface yang cepat dan responsif, bekerja lancar di semua
+                perangkat Anda.
+              </p>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Chart Produktivitas */}
-        <div className="bg-yellow-50 rounded-3xl p-8 shadow-lg">
-          <div
-            className="bg-white rounded-xl p-6 shadow-md"
-            style={{ height: 220 }}
-          >
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-semibold text-gray-800 text-lg">
-                Produktivitas Minggu Ini
-              </h3>
-              <span className="text-green-600 font-semibold bg-green-100 px-3 py-1 rounded-full text-sm">
-                +24%
-              </span>
+      {/* ================= HOW IT WORKS SECTION ================= */}
+      <section
+        id="how-it-works"
+        className="py-20 px-6 bg-gradient-to-br from-gray-50 to-gray-100"
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold mb-4">
+              Cara Kerja Organizo
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Mulai produktif dalam 3 langkah sederhana
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-10">
+            {/* Step 1 */}
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-yellow-400 to-orange-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <span className="text-white text-3xl font-bold">1</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Daftar Gratis</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Buat akun Anda dalam hitungan detik. Tidak perlu kartu kredit,
+                langsung mulai!
+              </p>
             </div>
-            {chartData ? (
+
+            {/* Step 2 */}
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-blue-400 to-indigo-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <span className="text-white text-3xl font-bold">2</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">Tambahkan Tugas</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Mulai menambahkan tugas, atur prioritas, dan tentukan deadline
+                untuk setiap tugas.
+              </p>
+            </div>
+
+            {/* Step 3 */}
+            <div className="text-center">
+              <div className="bg-gradient-to-br from-green-400 to-emerald-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                <span className="text-white text-3xl font-bold">3</span>
+              </div>
+              <h3 className="text-2xl font-bold mb-3">
+                Tingkatkan Produktivitas
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Pantau progress Anda, selesaikan tugas, dan capai tujuan Anda
+                dengan lebih efisien.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= BENEFITS SECTION ================= */}
+      <section id="benefits" className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-extrabold mb-4">
+              Mengapa Memilih Organizo?
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Bergabunglah dengan ribuan pengguna yang sudah meningkatkan
+              produktivitas mereka
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-10">
+            {/* Benefit 1 */}
+            <div className="flex gap-5 items-start">
+              <div className="bg-yellow-100 p-3 rounded-xl flex-shrink-0">
+                <TrendingUp className="text-yellow-600" size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">
+                  Tingkatkan Produktivitas 3x Lipat
+                </h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Pengguna kami melaporkan peningkatan produktivitas hingga 300%
+                  setelah menggunakan Organizo selama 1 bulan.
+                </p>
+              </div>
+            </div>
+
+            {/* Benefit 2 */}
+            <div className="flex gap-5 items-start">
+              <div className="bg-blue-100 p-3 rounded-xl flex-shrink-0">
+                <Shield className="text-blue-600" size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">Keamanan Terjamin</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Data Anda dienkripsi dan disimpan dengan aman. Privasi Anda
+                  adalah prioritas kami.
+                </p>
+              </div>
+            </div>
+
+            {/* Benefit 3 */}
+            <div className="flex gap-5 items-start">
+              <div className="bg-green-100 p-3 rounded-xl flex-shrink-0">
+                <Clock className="text-green-600" size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">Hemat Waktu</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Otomasi pengingat dan notifikasi membantu Anda fokus pada hal
+                  yang penting tanpa khawatir lupa.
+                </p>
+              </div>
+            </div>
+
+            {/* Benefit 4 */}
+            <div className="flex gap-5 items-start">
+              <div className="bg-purple-100 p-3 rounded-xl flex-shrink-0">
+                <Star className="text-purple-600" size={28} />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">Rating 4.9/5</h3>
+                <p className="text-gray-600 leading-relaxed">
+                  Dipercaya oleh ribuan pengguna dengan rating tertinggi di
+                  kelasnya.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= STATS SECTION ================= */}
+      <section className="py-20 px-6 bg-gradient-to-br from-yellow-400 via-orange-400 to-amber-500 text-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-10 text-center">
+            <div>
+              <div className="text-5xl font-extrabold mb-2">10,000+</div>
+              <p className="text-lg opacity-90">Pengguna Aktif</p>
+            </div>
+            <div>
+              <div className="text-5xl font-extrabold mb-2">500,000+</div>
+              <p className="text-lg opacity-90">Tugas Diselesaikan</p>
+            </div>
+            <div>
+              <div className="text-5xl font-extrabold mb-2">4.9/5</div>
+              <p className="text-lg opacity-90">Rating Pengguna</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CHART SECTION ================= */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-extrabold mb-4">
+              Pantau Progress Anda
+            </h2>
+            <p className="text-lg text-gray-600">
+              Lihat statistik produktivitas Anda dalam grafik yang mudah
+              dipahami
+            </p>
+          </div>
+
+          {chartData && (
+            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-8 rounded-2xl shadow-xl border border-yellow-100">
               <Line
                 data={chartData}
                 options={{
-                  plugins: { legend: { display: false } },
-                  scales: {
-                    x: { grid: { display: false } },
-                    y: {
-                      beginAtZero: true,
-                      grid: { color: "#f3f4f6" },
-                      ticks: { stepSize: 1 },
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  plugins: {
+                    legend: {
+                      display: true,
+                      position: "top",
+                      labels: {
+                        font: { size: 14, weight: "bold" },
+                        color: "#374151",
+                      },
+                    },
+                    tooltip: {
+                      backgroundColor: "rgba(0, 0, 0, 0.8)",
+                      titleColor: "#fff",
+                      bodyColor: "#fff",
+                      padding: 12,
+                      cornerRadius: 8,
                     },
                   },
-                  maintainAspectRatio: false,
-                  responsive: true,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      ticks: {
+                        color: "#6B7280",
+                        font: { size: 12 },
+                      },
+                      grid: {
+                        color: "rgba(0, 0, 0, 0.05)",
+                      },
+                    },
+                    x: {
+                      ticks: {
+                        color: "#6B7280",
+                        font: { size: 12 },
+                      },
+                      grid: {
+                        display: false,
+                      },
+                    },
+                  },
                 }}
-                height={180}
               />
-            ) : (
-              <div className="h-44 flex items-center justify-center text-gray-400">
-                Loading chart...
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* CTA SECTION */}
-      <section className="bg-gradient-to-br from-yellow-400 via-orange-400 to-amber-500 py-20 px-6 text-center text-white">
-        <h2 className="text-4xl sm:text-5xl font-extrabold mb-6 leading-tight">
-          Siap Meningkatkan <br />
-          Produktivitas Anda?
-        </h2>
-        <p className="text-xl sm:text-2xl max-w-3xl mx-auto mb-12 leading-relaxed">
-          Bergabunglah dengan ribuan pengguna yang sudah merasakan manfaat
-          Organizo. Mulai gratis hari ini!
-        </p>
-        <Link
-          to="/register"
-          className="inline-flex items-center gap-3 bg-gray-900 hover:bg-gray-800 px-10 py-4 rounded-xl font-extrabold text-lg shadow-lg hover:shadow-xl transition-transform transform hover:scale-105 mx-auto"
-        >
-          Daftar Gratis Sekarang <ArrowRight size={24} />
-        </Link>
+      {/* ================= CTA SECTION ================= */}
+      <section className="py-20 px-6 bg-gradient-to-br from-gray-900 to-gray-800 text-white text-center">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
+            Siap Meningkatkan Produktivitas Anda?
+          </h2>
+          <p className="text-xl mb-10 opacity-90 leading-relaxed">
+            Bergabunglah dengan ribuan pengguna yang sudah merasakan manfaat
+            Organizo. Mulai gratis hari ini!
+          </p>
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-3 bg-gradient-to-r from-yellow-400 to-amber-500 text-gray-900 px-10 py-4 rounded-2xl font-bold text-lg shadow-2xl hover:shadow-3xl transition transform hover:scale-105"
+          >
+            Daftar Sekarang - Gratis! <ArrowRight size={24} />
+          </Link>
+          <p className="mt-6 text-sm opacity-75">
+            Tidak perlu kartu kredit • Gratis selamanya • Setup dalam 2 menit
+          </p>
+        </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="bg-gray-900 text-white py-12 px-6">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-10">
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-gray-900 text-gray-400 py-12 px-6">
+        <div className="max-w-6xl mx-auto grid md:grid-cols-4 gap-10">
+          {/* Column 1 */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-2 mb-4">
               <img
                 src="/logo.png"
                 alt="Organizo Logo"
-                className="w-10 h-10 rounded-xl object-cover shadow-md"
+                className="w-10 h-10 rounded-xl"
               />
-              <div>
-                <div className="font-bold text-lg">Organizo</div>
-                <div className="text-xs text-gray-400">Task Manager</div>
-              </div>
+              <div className="font-bold text-white text-lg">Organizo</div>
             </div>
-            <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
-              Platform manajemen tugas yang membantu Anda lebih produktif setiap
-              hari.
+            <p className="text-sm leading-relaxed">
+              Platform manajemen tugas terbaik untuk meningkatkan produktivitas
+              Anda.
             </p>
           </div>
+
+          {/* Column 2 */}
           <div>
-            <h3 className="font-semibold text-lg mb-3">Produk</h3>
-            <ul className="space-y-2 text-gray-400 text-sm">
+            <h4 className="text-white font-bold mb-4">Produk</h4>
+            <ul className="space-y-2 text-sm">
               <li>
                 <a
                   href="#features"
-                  onClick={handleSmoothScroll}
-                  className="hover:text-white transition"
+                  className="hover:text-yellow-400 transition"
                 >
                   Fitur
                 </a>
               </li>
               <li>
-                <a href="#pricing" className="hover:text-white transition">
+                <a href="#" className="hover:text-yellow-400 transition">
                   Harga
                 </a>
               </li>
               <li>
-                <a href="#faq" className="hover:text-white transition">
+                <a href="#" className="hover:text-yellow-400 transition">
                   FAQ
                 </a>
               </li>
             </ul>
           </div>
+
+          {/* Column 3 */}
           <div>
-            <h3 className="font-semibold text-lg mb-3">Perusahaan</h3>
-            <ul className="space-y-2 text-gray-400 text-sm">
+            <h4 className="text-white font-bold mb-4">Perusahaan</h4>
+            <ul className="space-y-2 text-sm">
               <li>
-                <a href="#about" className="hover:text-white transition">
+                <a href="#" className="hover:text-yellow-400 transition">
                   Tentang Kami
                 </a>
               </li>
               <li>
-                <a href="#blog" className="hover:text-white transition">
+                <a href="#" className="hover:text-yellow-400 transition">
                   Blog
                 </a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-white transition">
+                <a href="#" className="hover:text-yellow-400 transition">
+                  Karir
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4 */}
+          <div>
+            <h4 className="text-white font-bold mb-4">Legal</h4>
+            <ul className="space-y-2 text-sm">
+              <li>
+                <Link
+                  to="/privacy"
+                  className="hover:text-yellow-400 transition"
+                >
+                  Kebijakan Privasi
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-yellow-400 transition">
+                  Syarat & Ketentuan
+                </Link>
+              </li>
+              <li>
+                <a href="#" className="hover:text-yellow-400 transition">
                   Kontak
                 </a>
               </li>
             </ul>
           </div>
-          <div>
-            <h3 className="font-semibold text-lg mb-3">Legal</h3>
-            <ul className="space-y-2 text-gray-400 text-sm">
-              <li>
-                <Link to="/privacy" className="hover:text-white transition">
-                  Kebijakan Privasi
-                </Link>
-              </li>
-              <li>
-                <Link to="/terms" className="hover:text-white transition">
-                  Syarat & Ketentuan
-                </Link>
-              </li>
-            </ul>
-          </div>
         </div>
-        <div className="border-t border-gray-800 mt-10 pt-6 text-center text-gray-500 text-xs sm:text-sm">
-          © 2025 Organizo. All rights reserved. Made with ❤️ in Indonesia
+
+        <div className="max-w-6xl mx-auto mt-10 pt-8 border-t border-gray-800 text-center text-sm">
+          <p>© 2026 Organizo Task Manager. All rights reserved.</p>
         </div>
       </footer>
-    </div>
-  );
-}
-
-// Komponen FeatureCard
-function FeatureCard({ icon, title, description, colorFrom, colorTo }) {
-  return (
-    <div className="bg-yellow-50 rounded-2xl p-6 shadow-md hover:shadow-lg transition cursor-pointer">
-      <div
-        className={`w-14 h-14 rounded-xl flex items-center justify-center mb-4 bg-gradient-to-br from-${colorFrom} to-${colorTo} text-white shadow-md`}
-      >
-        <span className="text-xl">{icon}</span>
-      </div>
-      <h3 className="font-semibold text-lg mb-2">{title}</h3>
-      <p className="text-gray-700 text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-}
-
-// Komponen StepCard
-function StepCard({ number, title, description }) {
-  return (
-    <div className="bg-white rounded-2xl p-6 shadow-md hover:shadow-lg transition cursor-default">
-      <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-full flex items-center justify-center text-white font-extrabold text-2xl mb-4 shadow-md">
-        {number}
-      </div>
-      <h3 className="font-semibold text-lg mb-2">{title}</h3>
-      <p className="text-gray-700 text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-}
-
-// Komponen BenefitItem tanpa emoji
-function BenefitItem({ title, description, color }) {
-  const colors = {
-    green: "bg-green-100 text-green-600",
-    blue: "bg-blue-100 text-blue-600",
-    purple: "bg-purple-100 text-purple-600",
-    orange: "bg-orange-100 text-orange-600",
-  };
-  return (
-    <div className="flex gap-4 items-start">
-      <div className={`w-10 h-10 ${colors[color]} rounded-xl`} />
-      <div>
-        <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-        <p className="text-gray-600 text-sm leading-relaxed">{description}</p>
-      </div>
     </div>
   );
 }

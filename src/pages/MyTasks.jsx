@@ -104,7 +104,6 @@ export default function MyTasks() {
       return;
     }
 
-    // Reset form fields after successful task creation
     setTitle("");
     setDescription("");
     setDueDate("");
@@ -119,7 +118,7 @@ export default function MyTasks() {
       showConfirmButton: false,
     });
 
-    fetchTasks(); // Reload tasks
+    fetchTasks();
   };
 
   const toggleDone = async (task) => {
@@ -138,7 +137,6 @@ export default function MyTasks() {
       return;
     }
 
-    // After updating, fetch tasks again to get the latest state
     fetchTasks();
   };
 
@@ -177,11 +175,11 @@ export default function MyTasks() {
       showConfirmButton: false,
     });
 
-    fetchTasks(); // Reload tasks after deletion
+    fetchTasks();
   };
 
   const updateTask = async () => {
-    if (!editTask) return; // Pastikan editTask ada
+    if (!editTask) return;
 
     const { error } = await supabase
       .from("tasks")
@@ -203,7 +201,6 @@ export default function MyTasks() {
       return;
     }
 
-    // Setelah tugas diupdate, reset editTask dan muat ulang daftar tugas
     setEditTask(null);
 
     Swal.fire({
@@ -215,7 +212,7 @@ export default function MyTasks() {
       showConfirmButton: false,
     });
 
-    fetchTasks(); // Muat ulang daftar tugas
+    fetchTasks();
   };
 
   const activeTasks = tasks.filter((t) => !t.is_done && t.due_date >= today);
@@ -236,18 +233,21 @@ export default function MyTasks() {
   }
 
   return (
-    <div className="min-h-screen p-6 bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div className="min-h-screen p-4 sm:p-6 bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
+        {/* Header - Responsive */}
+        <header className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
               Tugas Saya
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               Kelola dan organisir tugas Anda dengan efisien
             </p>
           </div>
-          <div className="flex gap-4">
+
+          {/* Status Badges - Responsive Grid */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-4">
             <StatusBadge
               icon={FiClock}
               label="Aktif"
@@ -286,7 +286,7 @@ export default function MyTasks() {
         />
 
         {/* Task List */}
-        <section className="space-y-10">
+        <section className="space-y-6 sm:space-y-10">
           {overdueTasks.length > 0 && (
             <TaskSection
               title="Tugas Terlambat"
@@ -298,6 +298,7 @@ export default function MyTasks() {
                 <TaskCard
                   key={task.id}
                   task={task}
+                  overdue={true}
                   toggleDone={toggleDone}
                   setEditTask={setEditTask}
                   deleteTask={deleteTask}
@@ -316,6 +317,7 @@ export default function MyTasks() {
                 <TaskCard
                   key={task.id}
                   task={task}
+                  overdue={false}
                   toggleDone={toggleDone}
                   setEditTask={setEditTask}
                   deleteTask={deleteTask}
@@ -334,6 +336,7 @@ export default function MyTasks() {
                 <TaskCard
                   key={task.id}
                   task={task}
+                  overdue={false}
                   toggleDone={toggleDone}
                   setEditTask={setEditTask}
                   deleteTask={deleteTask}

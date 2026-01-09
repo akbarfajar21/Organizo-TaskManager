@@ -27,6 +27,9 @@ export default function ChatPage() {
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
   const { fetchTotalUnread } = useChat();
 
+  // ✅ TAMBAHKAN STATE INI untuk mobile view
+  const [showChatRoom, setShowChatRoom] = useState(false);
+
   // Modal tugas/kegiatan
   const [showModal, setShowModal] = useState(false);
   const [tasks, setTasks] = useState([]);
@@ -72,7 +75,10 @@ export default function ChatPage() {
         .select("id, full_name, avatar_url, user_id")
         .neq("id", user.id);
 
-      if (!error) {
+      if (error) {
+        console.error("Error fetching users:", error);
+      } else {
+        console.log("Fetched users:", data);
         setUsers(data || []);
       }
     };
@@ -280,11 +286,16 @@ export default function ChatPage() {
       .neq("sender_id", user.id)
       .select();
 
-    if (updateError) return;
+    if (updateError) {
+      console.error("❌ Error marking messages as read:", updateError);
+      return;
+    }
 
     const unreadCount = updatedMessages?.length || 0;
 
-    if (unreadCount === 0) return;
+    if (unreadCount === 0) {
+      return;
+    }
 
     setUnreadCounts((prev) => {
       const updated = { ...prev };
@@ -327,8 +338,29 @@ export default function ChatPage() {
       currentChatId = chat.id;
       setChatId(chat.id);
 
+      console.log("🔵 Data chat lengkap:", chat);
+
       const deletedBy = chat.deleted_by || [];
-      const userDeleted = deletedBy.find((item) => item.user_id === user.id);
+
+      console.log("🔍 Isi deleted_by:", JSON.stringify(deletedBy, null, 2));
+      console.log("🔍 User ID saat ini:", user.id);
+      console.log(
+        "🔍 Tipe data deleted_by:",
+        typeof deletedBy,
+        Array.isArray(deletedBy)
+      );
+
+      const userDeleted = deletedBy.find((item) => {
+        console.log("🔍 Cek item:", item, "user_id:", item?.user_id);
+        return item.user_id === user.id;
+      });
+
+      console.log("🔵 Fetch messages untuk chat:", {
+        chatId: currentChatId,
+        deletedBy: deletedBy,
+        userDeleted: userDeleted,
+        deletedAt: userDeleted?.deleted_at,
+      });
 
       let query = supabase
         .from("messages")
@@ -336,12 +368,28 @@ export default function ChatPage() {
         .eq("chat_id", currentChatId);
 
       if (userDeleted && userDeleted.deleted_at) {
+        console.log("🟡 Filter pesan setelah:", userDeleted.deleted_at);
         query = query.gt("created_at", userDeleted.deleted_at);
+      } else {
+        console.log("⚠️ Tidak ada filter, tampilkan semua pesan");
       }
 
-      const { data: msgs } = await query.order("created_at", {
+      const { data: msgs, error: msgError } = await query.order("created_at", {
         ascending: true,
       });
+
+      console.log("🟢 Pesan yang diambil:", msgs?.length || 0, "pesan");
+      if (msgs && msgs.length > 0) {
+        console.log("🟢 Pesan pertama created_at:", msgs[0].created_at);
+        console.log(
+          "🟢 Pesan terakhir created_at:",
+          msgs[msgs.length - 1].created_at
+        );
+      }
+
+      if (msgError) {
+        console.error("Error fetch messages:", msgError);
+      }
 
       setMessages(msgs || []);
 
@@ -362,6 +410,7 @@ export default function ChatPage() {
             filter: `chat_id=eq.${currentChatId}`,
           },
           async (payload) => {
+            console.log("📩 Pesan baru masuk:", payload.new);
             setMessages((prev) => [...prev, payload.new]);
 
             if (payload.new.sender_id !== user.id) {
@@ -419,6 +468,7 @@ export default function ChatPage() {
     ]);
 
     if (error) {
+      console.error("Gagal mengirim pesan:", error.message);
       Swal.fire({
         title: "Gagal!",
         text: "Gagal mengirim pesan. Silakan coba lagi.",
@@ -442,6 +492,7 @@ export default function ChatPage() {
       .eq("id", messageId);
 
     if (error) {
+      console.error("Gagal menghapus pesan:", error.message);
       alert("Gagal menghapus pesan. Silakan coba lagi.");
       return;
     }
@@ -476,6 +527,7 @@ export default function ChatPage() {
       .single();
 
     if (fetchError) {
+      console.error("Gagal mengambil data chat:", fetchError.message);
       Swal.fire({
         title: "Gagal!",
         text: "Gagal menghapus chat. Silakan coba lagi.",
@@ -486,15 +538,42 @@ export default function ChatPage() {
       return;
     }
 
+    console.log("🔍 Data chat sebelum hapus:", chatData);
+
     let deletedBy = chatData.deleted_by || [];
+
+    console.log(
+      "🔍 deleted_by sebelum filter:",
+      JSON.stringify(deletedBy, null, 2)
+    );
+
     deletedBy = deletedBy.filter((item) => item.user_id !== user.id);
+
+    console.log(
+      "🔍 deleted_by setelah filter:",
+      JSON.stringify(deletedBy, null, 2)
+    );
 
     const deletedAt = new Date().toISOString();
 
-    deletedBy.push({
+    const newEntry = {
       user_id: user.id,
       deleted_at: deletedAt,
+    };
+
+    deletedBy.push(newEntry);
+
+    console.log("🔴 Menghapus chat dengan data:", {
+      chatId: chatIdToDelete,
+      userId: user.id,
+      deletedAt: deletedAt,
+      deletedBy: deletedBy,
     });
+
+    console.log(
+      "🔍 deleted_by yang akan disimpan:",
+      JSON.stringify(deletedBy, null, 2)
+    );
 
     const { error: updateError } = await supabase
       .from("chats")
@@ -502,6 +581,7 @@ export default function ChatPage() {
       .eq("id", chatIdToDelete);
 
     if (updateError) {
+      console.error("❌ Gagal update deleted_by:", updateError.message);
       Swal.fire({
         title: "Gagal!",
         text: "Gagal menghapus chat. Silakan coba lagi.",
@@ -511,6 +591,8 @@ export default function ChatPage() {
       });
       return;
     }
+
+    console.log("✅ Berhasil update deleted_by");
 
     setRecentChats((prev) => prev.filter((c) => c.chat_id !== chatIdToDelete));
     setUnreadCounts((prev) => {
@@ -523,6 +605,8 @@ export default function ChatPage() {
       setSelectedUser(null);
       setMessages([]);
       setChatId(null);
+      // ✅ Kembali ke sidebar di mobile
+      setShowChatRoom(false);
     }
 
     setOpenChatDropdown(null);
@@ -558,15 +642,33 @@ export default function ChatPage() {
     setShowModal(true);
   };
 
-  // --- Filter users berdasarkan User ID (exact match) ---
+  // ✅ MODIFIKASI: Handle select user untuk mobile
+  const handleSelectUser = (u) => {
+    setSelectedUser(u);
+    setShowChatRoom(true); // Tampilkan chat room di mobile
+  };
+
+  // ✅ TAMBAHKAN: Handle back to sidebar di mobile
+  const handleBackToSidebar = () => {
+    setShowChatRoom(false);
+    setSelectedUser(null);
+  };
+
   const filteredUsers =
     search.trim() !== ""
       ? users.filter((u) => {
           const searchValue = search.trim().toUpperCase();
           const userIdValue = u.user_id ? u.user_id.toUpperCase() : "";
-          return userIdValue === searchValue;
+          const isMatch = userIdValue === searchValue;
+
+          console.log(`Checking: "${u.user_id}" === "${search}"? ${isMatch}`);
+
+          return u.user_id && isMatch;
         })
       : [];
+
+  console.log("Search input:", `"${search}"`);
+  console.log("Filtered results:", filteredUsers.length, "users");
 
   // --- Format waktu pesan ---
   const formatTime = (isoString) => {
@@ -574,8 +676,64 @@ export default function ChatPage() {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  useEffect(() => {
+    const navbar = document.querySelector("nav");
+    const header = document.querySelector("header");
+    const sidebar = document.querySelector("aside"); // Sidebar website
+
+    // Cek apakah sedang di mobile
+    const isMobile = window.innerWidth < 768;
+
+    if (showChatRoom && isMobile) {
+      // Sembunyikan navbar & sidebar hanya di mobile
+      if (navbar) navbar.style.display = "none";
+      if (header) header.style.display = "none";
+      if (sidebar) sidebar.style.display = "none";
+      document.body.style.overflow = "hidden";
+    } else {
+      // Tampilkan kembali navbar & sidebar
+      if (navbar) navbar.style.display = "";
+      if (header) header.style.display = "";
+      if (sidebar) sidebar.style.display = "";
+      document.body.style.overflow = "";
+    }
+
+    // Handle resize
+    const handleResize = () => {
+      const isMobileNow = window.innerWidth < 768;
+
+      if (showChatRoom && isMobileNow) {
+        if (navbar) navbar.style.display = "none";
+        if (header) header.style.display = "none";
+        if (sidebar) sidebar.style.display = "none";
+      } else {
+        if (navbar) navbar.style.display = "";
+        if (header) header.style.display = "";
+        if (sidebar) sidebar.style.display = "";
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Cleanup
+    return () => {
+      if (navbar) navbar.style.display = "";
+      if (header) header.style.display = "";
+      if (sidebar) sidebar.style.display = "";
+      document.body.style.overflow = "";
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [showChatRoom]);
+
   return (
-    <div className="flex h-[calc(100vh-64px)] bg-white dark:bg-gray-900">
+    // ✅ Height dinamis: full screen di mobile saat chat room, normal di desktop
+    <div
+      className={`flex ${
+        showChatRoom
+          ? "h-screen md:h-[calc(100vh-64px)]"
+          : "h-[calc(100vh-64px)]"
+      } bg-white dark:bg-gray-900 overflow-hidden`}
+    >
       <TaskActivityModal
         showModal={showModal}
         setShowModal={setShowModal}
@@ -584,41 +742,71 @@ export default function ChatPage() {
         sendMessage={sendMessage}
       />
 
-      <ChatSidebar
-        search={search}
-        setSearch={setSearch}
-        filteredUsers={filteredUsers}
-        recentChats={recentChats}
-        selectedUser={selectedUser}
-        setSelectedUser={setSelectedUser}
-        unreadCounts={unreadCounts}
-        openChatDropdown={openChatDropdown}
-        setOpenChatDropdown={setOpenChatDropdown}
-        handleDeleteChat={handleDeleteChat}
-        chatDropdownRef={chatDropdownRef}
-      />
-
-      <div className="flex-1 flex flex-col">
-        <ChatHeader selectedUser={selectedUser} />
-
-        <MessageList
-          messages={messages}
-          userId={user.id}
-          openDropdown={openDropdown}
-          setOpenDropdown={setOpenDropdown}
-          handleDeleteMessage={handleDeleteMessage}
-          formatTime={formatTime}
-          messagesEndRef={messagesEndRef}
-          dropdownRef={dropdownRef}
-        />
-
-        <ChatInput
-          input={input}
-          setInput={setInput}
-          sendMessage={sendMessage}
-          handleSendTask={handleSendTask}
+      {/* SIDEBAR CHAT - Hidden di mobile saat chat room aktif */}
+      <div
+        className={`
+          ${showChatRoom ? "hidden md:flex" : "flex"} 
+          w-full md:w-80 
+          flex-shrink-0
+        `}
+      >
+        <ChatSidebar
+          search={search}
+          setSearch={setSearch}
+          filteredUsers={filteredUsers}
+          recentChats={recentChats}
           selectedUser={selectedUser}
+          setSelectedUser={handleSelectUser}
+          unreadCounts={unreadCounts}
+          openChatDropdown={openChatDropdown}
+          setOpenChatDropdown={setOpenChatDropdown}
+          handleDeleteChat={handleDeleteChat}
+          chatDropdownRef={chatDropdownRef}
         />
+      </div>
+
+      {/* CHAT ROOM - Hidden di mobile saat sidebar aktif */}
+      <div
+        className={`
+          ${showChatRoom ? "flex" : "hidden md:flex"} 
+          flex-1 
+          w-full
+          h-full
+          relative
+        `}
+      >
+        {/* FIXED HEADER */}
+        <div className="absolute top-0 left-0 right-0 z-50">
+          <ChatHeader
+            selectedUser={selectedUser}
+            onBack={handleBackToSidebar}
+          />
+        </div>
+
+        {/* SCROLLABLE MESSAGE LIST */}
+        <div className="absolute top-14 md:top-16 bottom-16 md:bottom-20 left-0 right-0 overflow-y-auto overflow-x-hidden">
+          <MessageList
+            messages={messages}
+            userId={user.id}
+            openDropdown={openDropdown}
+            setOpenDropdown={setOpenDropdown}
+            handleDeleteMessage={handleDeleteMessage}
+            formatTime={formatTime}
+            messagesEndRef={messagesEndRef}
+            dropdownRef={dropdownRef}
+          />
+        </div>
+
+        {/* FIXED INPUT */}
+        <div className="absolute bottom-0 left-0 right-0 z-50">
+          <ChatInput
+            input={input}
+            setInput={setInput}
+            sendMessage={sendMessage}
+            handleSendTask={handleSendTask}
+            selectedUser={selectedUser}
+          />
+        </div>
       </div>
     </div>
   );

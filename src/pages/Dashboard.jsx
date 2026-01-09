@@ -25,7 +25,6 @@ export default function Dashboard() {
   const today = new Date().toISOString().slice(0, 10);
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
-  // Fungsi fetch kegiatan hari ini
   const fetchTodayActivities = async () => {
     if (!user) return;
     const { data, error } = await supabase
@@ -39,7 +38,6 @@ export default function Dashboard() {
     }
   };
 
-  // Ambil data tugas saat ini
   useEffect(() => {
     if (!user) return;
 
@@ -54,7 +52,6 @@ export default function Dashboard() {
         }
       });
 
-    // Ambil data tugas periode sebelumnya (7 hari lalu)
     const sevenDaysAgo = new Date(Date.now() - 7 * 86400000)
       .toISOString()
       .slice(0, 10);
@@ -70,13 +67,10 @@ export default function Dashboard() {
       });
   }, [user]);
 
-  // Ambil data kegiatan hari ini (pertama kali)
   useEffect(() => {
     fetchTodayActivities();
-    // eslint-disable-next-line
   }, [user, today]);
 
-  // Realtime subscription untuk tugas
   useEffect(() => {
     if (!user) return;
 
@@ -103,7 +97,6 @@ export default function Dashboard() {
     return () => supabase.removeChannel(channel);
   }, [user]);
 
-  // Realtime subscription untuk kegiatan
   useEffect(() => {
     if (!user) return;
 
@@ -124,17 +117,14 @@ export default function Dashboard() {
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-    // eslint-disable-next-line
   }, [user, today]);
 
-  // Statistik tugas
   const total = tasks.length;
   const done = tasks.filter((t) => t.is_done).length;
   const todayTasks = tasks.filter((t) => t.due_date === today && !t.is_done);
   const overdueTasks = tasks.filter((t) => t.due_date < today && !t.is_done);
   const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
 
-  // Statistik periode sebelumnya
   const previousTotal = previousTasks.length;
   const previousTodayTasks = previousTasks.filter(
     (t) => t.due_date === yesterday && !t.is_done
@@ -143,7 +133,6 @@ export default function Dashboard() {
     (t) => t.due_date < yesterday && !t.is_done
   );
 
-  // Fungsi hitung tren
   const calculateTrend = (current, previous) => {
     if (previous === 0) {
       return current > 0 ? "+100%" : "0%";
@@ -165,7 +154,6 @@ export default function Dashboard() {
       : "Membaik";
   const completionTrend = `${completionRate}%`;
 
-  // Tampilkan toast jika ada tugas overdue atau deadline hari ini
   useEffect(() => {
     if (loading) return;
     if (overdueTasks.length > 0) {
@@ -199,19 +187,19 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">
+    <div className="space-y-4 sm:space-y-6 p-4 sm:p-6 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      {/* Header - Responsive */}
+      <div className="mb-4 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100 mb-1 sm:mb-2">
           Dashboard Overview
         </h1>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
           Selamat datang kembali! Berikut ringkasan tugas Anda hari ini.
         </p>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+      {/* Summary Cards - Responsive Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
         <SummaryCard
           title="Total Tugas"
           value={total}
@@ -284,75 +272,72 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Konten utama */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bagian kiri: Notifikasi dan Kegiatan */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Card Notifikasi */}
+      {/* Main Content - Responsive Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        {/* Left Section - Notifications & Activities */}
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* Notifications Card */}
           <Card title="Notifikasi" icon={AlertCircle}>
             {todayTasks.length === 0 &&
             overdueTasks.length === 0 &&
             todayActivities.length === 0 ? (
-              <div className="flex items-center gap-3 text-sm text-green-600 dark:text-green-400 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 px-4 py-3 rounded-xl border border-green-200 dark:border-green-800">
-                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
-                  <CheckCircle2 size={20} />
+              <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-green-600 dark:text-green-400 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-green-200 dark:border-green-800">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-green-100 dark:bg-green-900/40 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle2 size={16} className="sm:w-5 sm:h-5" />
                 </div>
                 <div>
                   <p className="font-semibold">
                     Semua tugas & kegiatan terkendali! 🎉
                   </p>
-                  <p className="text-xs text-green-600/80 dark:text-green-400/80">
+                  <p className="text-xs text-green-600/80 dark:text-green-400/80 hidden sm:block">
                     Tidak ada tugas atau kegiatan yang mendesak
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
-                {/* Notifikasi tugas terlambat */}
+              <div className="space-y-2 sm:space-y-3">
                 {overdueTasks.length > 0 && (
-                  <div className="flex items-center gap-3 text-sm text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 px-4 py-3 rounded-xl border border-red-200 dark:border-red-800 hover:shadow-md transition-shadow">
-                    <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center flex-shrink-0">
-                      <AlertCircle size={20} />
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-red-200 dark:border-red-800 hover:shadow-md transition-shadow">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center flex-shrink-0">
+                      <AlertCircle size={16} className="sm:w-5 sm:h-5" />
                     </div>
                     <div>
                       <p className="font-semibold">
                         {overdueTasks.length} tugas terlambat
                       </p>
-                      <p className="text-xs text-red-600/80 dark:text-red-400/80">
+                      <p className="text-xs text-red-600/80 dark:text-red-400/80 hidden sm:block">
                         Segera selesaikan untuk tetap produktif
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Notifikasi tugas deadline hari ini */}
                 {todayTasks.length > 0 && (
-                  <div className="flex items-center gap-3 text-sm text-yellow-700 dark:text-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 px-4 py-3 rounded-xl border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-shadow">
-                    <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center flex-shrink-0">
-                      <Clock size={20} />
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-yellow-700 dark:text-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-shadow">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center flex-shrink-0">
+                      <Clock size={16} className="sm:w-5 sm:h-5" />
                     </div>
                     <div>
                       <p className="font-semibold">
                         {todayTasks.length} tugas deadline hari ini
                       </p>
-                      <p className="text-xs text-yellow-700/80 dark:text-yellow-400/80">
+                      <p className="text-xs text-yellow-700/80 dark:text-yellow-400/80 hidden sm:block">
                         Fokus pada prioritas utama
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Notifikasi kegiatan hari ini */}
                 {todayActivities.length > 0 && (
-                  <div className="flex items-center gap-3 text-sm text-blue-700 dark:text-blue-400 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-800 hover:shadow-md transition-shadow">
-                    <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
-                      <Calendar size={20} />
+                  <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-blue-700 dark:text-blue-400 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 px-3 sm:px-4 py-2 sm:py-3 rounded-xl border border-blue-200 dark:border-blue-800 hover:shadow-md transition-shadow">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0">
+                      <Calendar size={16} className="sm:w-5 sm:h-5" />
                     </div>
                     <div>
                       <p className="font-semibold">
                         {todayActivities.length} kegiatan hari ini
                       </p>
-                      <p className="text-xs text-blue-700/80 dark:text-blue-400/80">
+                      <p className="text-xs text-blue-700/80 dark:text-blue-400/80 hidden sm:block">
                         Cek jadwal kegiatan Anda hari ini
                       </p>
                     </div>
@@ -362,41 +347,41 @@ export default function Dashboard() {
             )}
           </Card>
 
-          {/* Card Kegiatan Hari Ini */}
+          {/* Today's Activities Card */}
           <Card title="Kegiatan Hari Ini" icon={Calendar}>
             {todayActivities.length === 0 ? (
-              <div className="text-center py-8">
-                <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="text-center py-6 sm:py-8">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2 sm:mb-3">
                   <Calendar
-                    size={24}
-                    className="text-gray-400 dark:text-gray-500"
+                    size={20}
+                    className="sm:w-6 sm:h-6 text-gray-400 dark:text-gray-500"
                   />
                 </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                   Tidak ada kegiatan hari ini
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 hidden sm:block">
                   Tambahkan kegiatan untuk mengatur jadwal
                 </p>
               </div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-1.5 sm:space-y-2">
                 {todayActivities.map((activity) => (
                   <li
                     key={activity.id}
-                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-sky-50 dark:hover:from-blue-900/20 dark:hover:to-sky-900/20 transition-all cursor-pointer group"
+                    className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg hover:bg-gradient-to-r hover:from-blue-50 hover:to-sky-50 dark:hover:from-blue-900/20 dark:hover:to-sky-900/20 transition-all cursor-pointer group"
                   >
                     <div
-                      className={`w-2 h-2 rounded-full mt-1.5 ${
+                      className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full mt-1.5 ${
                         activity.is_completed
                           ? "bg-green-500"
                           : "bg-gradient-to-r from-blue-400 to-sky-500"
                       } group-hover:scale-125 transition-transform`}
                     />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-1">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5 sm:mb-1">
                         <span
-                          className={`text-sm font-medium ${
+                          className={`text-xs sm:text-sm font-medium truncate ${
                             activity.is_completed
                               ? "line-through text-gray-400 dark:text-gray-500"
                               : "text-gray-700 dark:text-gray-300"
@@ -405,13 +390,13 @@ export default function Dashboard() {
                           {activity.title}
                         </span>
                         {activity.start_time && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 flex-shrink-0">
                             {activity.start_time.slice(0, 5)}
                           </span>
                         )}
                       </div>
                       {activity.categories && (
-                        <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-full">
+                        <span className="text-xs px-2 py-0.5 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 rounded-full inline-block">
                           {activity.categories.name}
                         </span>
                       )}
@@ -423,7 +408,7 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Bagian kanan: Kalender */}
+        {/* Right Section - Calendar */}
         <CalendarCard title="Kalender" />
       </div>
     </div>

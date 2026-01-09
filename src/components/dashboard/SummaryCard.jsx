@@ -1,5 +1,3 @@
-import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
-
 const SummaryCard = ({
   title,
   value,
@@ -26,23 +24,25 @@ const SummaryCard = ({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer group">
-      <div className="flex items-start justify-between mb-4">
+    <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-xl transition-all transform hover:-translate-y-1 cursor-pointer group">
+      <div className="flex items-start justify-between mb-3 sm:mb-4">
         <div
-          className={`w-12 h-12 rounded-xl ${bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}
+          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl ${bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}
         >
-          <Icon className={iconColor} size={24} />
+          <Icon className={iconColor} size={20} />
         </div>
         {trend && (
           <span
-            className={`text-xs font-semibold px-2 py-1 rounded-full ${getTrendColor()}`}
+            className={`text-xs font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full ${getTrendColor()}`}
           >
             {trend}
           </span>
         )}
       </div>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">{title}</p>
-      <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+      <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 truncate">
+        {title}
+      </p>
+      <p className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">
         {value}
       </p>
     </div>
