@@ -42,6 +42,12 @@ export default function Landing() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (localStorage.getItem("isLoggedIn")) {
+      window.location.href = "/app";
+    }
+  }, []);
+
+  useEffect(() => {
     const days = [...Array(7)].map((_, i) => {
       const d = new Date();
       d.setDate(d.getDate() - (6 - i));
