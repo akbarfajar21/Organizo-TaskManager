@@ -76,9 +76,7 @@ export default function ChatPage() {
         .neq("id", user.id);
 
       if (error) {
-        console.error("Error fetching users:", error);
       } else {
-        console.log("Fetched users:", data);
         setUsers(data || []);
       }
     };
@@ -287,7 +285,6 @@ export default function ChatPage() {
       .select();
 
     if (updateError) {
-      console.error("❌ Error marking messages as read:", updateError);
       return;
     }
 
@@ -338,28 +335,10 @@ export default function ChatPage() {
       currentChatId = chat.id;
       setChatId(chat.id);
 
-      console.log("🔵 Data chat lengkap:", chat);
-
       const deletedBy = chat.deleted_by || [];
 
-      console.log("🔍 Isi deleted_by:", JSON.stringify(deletedBy, null, 2));
-      console.log("🔍 User ID saat ini:", user.id);
-      console.log(
-        "🔍 Tipe data deleted_by:",
-        typeof deletedBy,
-        Array.isArray(deletedBy)
-      );
-
       const userDeleted = deletedBy.find((item) => {
-        console.log("🔍 Cek item:", item, "user_id:", item?.user_id);
         return item.user_id === user.id;
-      });
-
-      console.log("🔵 Fetch messages untuk chat:", {
-        chatId: currentChatId,
-        deletedBy: deletedBy,
-        userDeleted: userDeleted,
-        deletedAt: userDeleted?.deleted_at,
       });
 
       let query = supabase
@@ -368,27 +347,18 @@ export default function ChatPage() {
         .eq("chat_id", currentChatId);
 
       if (userDeleted && userDeleted.deleted_at) {
-        console.log("🟡 Filter pesan setelah:", userDeleted.deleted_at);
         query = query.gt("created_at", userDeleted.deleted_at);
       } else {
-        console.log("⚠️ Tidak ada filter, tampilkan semua pesan");
       }
 
       const { data: msgs, error: msgError } = await query.order("created_at", {
         ascending: true,
       });
 
-      console.log("🟢 Pesan yang diambil:", msgs?.length || 0, "pesan");
       if (msgs && msgs.length > 0) {
-        console.log("🟢 Pesan pertama created_at:", msgs[0].created_at);
-        console.log(
-          "🟢 Pesan terakhir created_at:",
-          msgs[msgs.length - 1].created_at
-        );
       }
 
       if (msgError) {
-        console.error("Error fetch messages:", msgError);
       }
 
       setMessages(msgs || []);
@@ -410,7 +380,6 @@ export default function ChatPage() {
             filter: `chat_id=eq.${currentChatId}`,
           },
           async (payload) => {
-            console.log("📩 Pesan baru masuk:", payload.new);
             setMessages((prev) => [...prev, payload.new]);
 
             if (payload.new.sender_id !== user.id) {
@@ -468,7 +437,6 @@ export default function ChatPage() {
     ]);
 
     if (error) {
-      console.error("Gagal mengirim pesan:", error.message);
       Swal.fire({
         title: "Gagal!",
         text: "Gagal mengirim pesan. Silakan coba lagi.",
@@ -499,7 +467,6 @@ export default function ChatPage() {
       .eq("id", messageId);
 
     if (error) {
-      console.error("Gagal menghapus pesan:", error.message);
       alert("Gagal menghapus pesan. Silakan coba lagi.");
       return;
     }
@@ -534,7 +501,6 @@ export default function ChatPage() {
       .single();
 
     if (fetchError) {
-      console.error("Gagal mengambil data chat:", fetchError.message);
       Swal.fire({
         title: "Gagal!",
         text: "Gagal menghapus chat. Silakan coba lagi.",
@@ -545,21 +511,9 @@ export default function ChatPage() {
       return;
     }
 
-    console.log("🔍 Data chat sebelum hapus:", chatData);
-
     let deletedBy = chatData.deleted_by || [];
 
-    console.log(
-      "🔍 deleted_by sebelum filter:",
-      JSON.stringify(deletedBy, null, 2)
-    );
-
     deletedBy = deletedBy.filter((item) => item.user_id !== user.id);
-
-    console.log(
-      "🔍 deleted_by setelah filter:",
-      JSON.stringify(deletedBy, null, 2)
-    );
 
     const deletedAt = new Date().toISOString();
 
@@ -570,25 +524,12 @@ export default function ChatPage() {
 
     deletedBy.push(newEntry);
 
-    console.log("🔴 Menghapus chat dengan data:", {
-      chatId: chatIdToDelete,
-      userId: user.id,
-      deletedAt: deletedAt,
-      deletedBy: deletedBy,
-    });
-
-    console.log(
-      "🔍 deleted_by yang akan disimpan:",
-      JSON.stringify(deletedBy, null, 2)
-    );
-
     const { error: updateError } = await supabase
       .from("chats")
       .update({ deleted_by: deletedBy })
       .eq("id", chatIdToDelete);
 
     if (updateError) {
-      console.error("❌ Gagal update deleted_by:", updateError.message);
       Swal.fire({
         title: "Gagal!",
         text: "Gagal menghapus chat. Silakan coba lagi.",
@@ -598,8 +539,6 @@ export default function ChatPage() {
       });
       return;
     }
-
-    console.log("✅ Berhasil update deleted_by");
 
     setRecentChats((prev) => prev.filter((c) => c.chat_id !== chatIdToDelete));
     setUnreadCounts((prev) => {
@@ -612,7 +551,6 @@ export default function ChatPage() {
       setSelectedUser(null);
       setMessages([]);
       setChatId(null);
-      // ✅ Kembali ke sidebar di mobile
       setShowChatRoom(false);
     }
 
@@ -668,14 +606,9 @@ export default function ChatPage() {
           const userIdValue = u.user_id ? u.user_id.toUpperCase() : "";
           const isMatch = userIdValue === searchValue;
 
-          console.log(`Checking: "${u.user_id}" === "${search}"? ${isMatch}`);
-
           return u.user_id && isMatch;
         })
       : [];
-
-  console.log("Search input:", `"${search}"`);
-  console.log("Filtered results:", filteredUsers.length, "users");
 
   // --- Format waktu pesan ---
   const formatTime = (isoString) => {
@@ -747,14 +680,10 @@ export default function ChatPage() {
           messagePreview: messageText.substring(0, 50), // Potong jika terlalu panjang
         }),
       });
-      console.log("✅ Notification sent to:", recipientUserId);
-    } catch (error) {
-      console.error("❌ Failed to send push notification:", error);
-    }
+    } catch (error) {}
   };
 
   return (
-    // ✅ Height dinamis: full screen di mobile saat chat room, normal di desktop
     <div
       className={`flex ${
         showChatRoom
@@ -770,7 +699,6 @@ export default function ChatPage() {
         sendMessage={sendMessage}
       />
 
-      {/* SIDEBAR CHAT - Hidden di mobile saat chat room aktif */}
       <div
         className={`
           ${showChatRoom ? "hidden md:flex" : "flex"} 
@@ -793,7 +721,6 @@ export default function ChatPage() {
         />
       </div>
 
-      {/* CHAT ROOM - Hidden di mobile saat sidebar aktif */}
       <div
         className={`
           ${showChatRoom ? "flex" : "hidden md:flex"} 
@@ -803,7 +730,6 @@ export default function ChatPage() {
           relative
         `}
       >
-        {/* FIXED HEADER */}
         <div className="absolute top-0 left-0 right-0 z-50">
           <ChatHeader
             selectedUser={selectedUser}
@@ -811,7 +737,6 @@ export default function ChatPage() {
           />
         </div>
 
-        {/* SCROLLABLE MESSAGE LIST */}
         <div className="absolute top-14 md:top-16 bottom-16 md:bottom-20 left-0 right-0 overflow-y-auto overflow-x-hidden">
           <MessageList
             messages={messages}
@@ -825,7 +750,6 @@ export default function ChatPage() {
           />
         </div>
 
-        {/* FIXED INPUT */}
         <div className="absolute bottom-0 left-0 right-0 z-50">
           <ChatInput
             input={input}

@@ -2,12 +2,14 @@ import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Clock, Calendar } from "lucide-react";
+import { Clock, Calendar, Menu, X } from "lucide-react";
+import { useSidebar } from "../context/SidebarContext";
 
 export default function Header() {
   const { user } = useAuth();
   const { profile } = useProfile();
   const navigate = useNavigate();
+  const { isMobileMenuOpen, setIsMobileMenuOpen } = useSidebar();
 
   const avatarUrl = profile?.avatar_url;
   const fullName = profile?.full_name || "User";
@@ -54,7 +56,6 @@ export default function Header() {
   };
 
   const getFormattedTime = (date) => {
-    // ✅ Tambahkan seconds di sini
     return `${String(date.getHours()).padStart(2, "0")}:${String(
       date.getMinutes()
     ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
@@ -62,23 +63,37 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-30 h-14 sm:h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
-      {/* Left - Welcome Text (Hidden on mobile, shown on tablet+) */}
-      <div className="hidden sm:block flex-shrink-0">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Selamat datang,
-        </p>
-        <h2 className="text-sm sm:text-base font-bold text-gray-800 dark:text-gray-100 truncate max-w-[120px] sm:max-w-[200px]">
-          {fullName}
-        </h2>
-      </div>
+      {/* Mobile Menu Button - Tampil hanya di mobile */}
+      <button
+        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        className="lg:hidden w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center hover:from-yellow-500 hover:to-amber-600 transition-all shadow-lg hover:shadow-xl active:scale-95"
+      >
+        {isMobileMenuOpen ? (
+          <X size={20} className="text-white" />
+        ) : (
+          <Menu size={20} className="text-white" />
+        )}
+      </button>
 
-      {/* Mobile - Logo (Shown only on mobile, dengan margin untuk hamburger) */}
-      <div className="sm:hidden flex items-center gap-2 ml-14">
-        <img src="/logo.png" alt="Organizo" className="w-8 h-8 rounded-lg" />
-        <div>
-          <h1 className="text-sm font-bold text-gray-800 dark:text-gray-100">
-            Organizo
-          </h1>
+      {/* Left - Welcome Text */}
+      <div className="flex-shrink-0">
+        {/* Mobile - Show welcome text with full name */}
+        <div className="lg:hidden">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Selamat datang,
+          </p>
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 truncate max-w-[150px]">
+            {fullName}
+          </h2>
+        </div>
+        {/* Desktop - Show welcome text with full name */}
+        <div className="hidden lg:block">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Selamat datang,
+          </p>
+          <h2 className="text-sm sm:text-base font-bold text-gray-800 dark:text-gray-100 truncate max-w-[120px] sm:max-w-[200px]">
+            {fullName}
+          </h2>
         </div>
       </div>
 

@@ -14,8 +14,6 @@ import {
   ChevronRight,
   MessageCircle,
   HelpCircle,
-  Menu,
-  X,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -27,12 +25,12 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { isCollapsed, toggleSidebar } = useSidebar();
+  const { isCollapsed, toggleSidebar, isMobileMenuOpen, setIsMobileMenuOpen } =
+    useSidebar();
   const [taskCount, setTaskCount] = useState(0);
   const [notificationCount, setNotificationCount] = useState(0);
   const [activityCount, setActivityCount] = useState(0);
   const { totalUnreadMessages } = useChat();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   /* ================= FETCH FUNCTIONS ================= */
   const fetchTaskCount = async () => {
@@ -133,18 +131,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button - Fixed di kiri atas, sejajar dengan header */}
-      <button
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center hover:from-yellow-500 hover:to-amber-600 transition-all shadow-lg hover:shadow-xl active:scale-95"
-      >
-        {isMobileMenuOpen ? (
-          <X size={20} className="text-white" />
-        ) : (
-          <Menu size={20} className="text-white" />
-        )}
-      </button>
-
       {/* Overlay untuk mobile */}
       {isMobileMenuOpen && (
         <div

@@ -13,8 +13,11 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
 
+    // Deteksi environment
+    const redirectUrl = window.location.origin + "/reset-password";
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: redirectUrl,
     });
 
     setLoading(false);
@@ -34,10 +37,10 @@ export default function ForgotPassword() {
       icon: "success",
       title: "Email Terkirim!",
       html: `
-        <p style="color: #6B7280; margin-bottom: 8px;">Link reset password telah dikirim ke:</p>
-        <p style="font-size: 16px; font-weight: bold; color: #F59E0B;">${email}</p>
-        <p style="color: #6B7280; margin-top: 8px;">Silakan cek inbox atau folder spam Anda.</p>
-      `,
+      <p style="color: #6B7280; margin-bottom: 8px;">Link reset password telah dikirim ke:</p>
+      <p style="font-size: 16px; font-weight: bold; color: #F59E0B;">${email}</p>
+      <p style="color: #6B7280; margin-top: 8px;">Silakan cek inbox atau folder spam Anda.</p>
+    `,
       confirmButtonColor: "#FBBF24",
       confirmButtonText: "OK",
     });
