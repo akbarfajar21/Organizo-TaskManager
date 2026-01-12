@@ -3,6 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { useEffect } from "react";
 
+// Fungsi konversi VAPID key
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding)
@@ -18,6 +19,7 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
+// Fungsi subscribe push notification (hanya kirim subscription ke backend)
 async function subscribeUserToPush() {
   if ("serviceWorker" in navigator) {
     const registration = await navigator.serviceWorker.ready;
@@ -47,6 +49,7 @@ async function subscribeUserToPush() {
 
 export default function DashboardLayout() {
   useEffect(() => {
+    // Subscribe hanya sekali per device/browser
     if (
       "Notification" in window &&
       navigator.serviceWorker &&
