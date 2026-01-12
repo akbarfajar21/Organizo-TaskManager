@@ -102,4 +102,7 @@ body {
   color: rgb(17 24 39);
 }
 
+input, textarea, select {
+  font-size: 16px;
+}
 
