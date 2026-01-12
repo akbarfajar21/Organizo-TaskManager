@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext"; // ✅ TAMBAH INI
 
 // Fungsi konversi VAPID key
 function urlBase64ToUint8Array(base64String) {
@@ -19,8 +20,8 @@ function urlBase64ToUint8Array(base64String) {
   return outputArray;
 }
 
-// Fungsi subscribe push notification (hanya kirim subscription ke backend)
-async function subscribeUserToPush() {
+// ✅ MODIFIKASI: Tambah parameter userId
+async function subscribeUserToPush(userId) {
   if ("serviceWorker" in navigator) {
     const registration = await navigator.serviceWorker.ready;
     const publicVapidKey =
@@ -33,36 +34,42 @@ async function subscribeUserToPush() {
         applicationServerKey: convertedVapidKey,
       });
 
-      // Kirim subscription ke backend
+      // ✅ PENTING: Kirim subscription + userId
       await fetch("http://localhost:4000/api/save-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(subscription),
+        body: JSON.stringify({
+          subscription, // ✅ subscription object
+          userId, // ✅ user id dari Supabase
+        }),
       });
 
-      console.log("User is subscribed to push notifications");
+      console.log("✅ User subscribed to push notifications:", userId);
     } catch (error) {
-      console.error("Failed to subscribe the user: ", error);
+      console.error("❌ Failed to subscribe the user:", error);
     }
   }
 }
 
 export default function DashboardLayout() {
+  const { user } = useAuth(); // ✅ TAMBAH INI untuk mendapatkan user.id
+
   useEffect(() => {
-    // Subscribe hanya sekali per device/browser
+    // ✅ MODIFIKASI: Pastikan user sudah login dulu
     if (
+      user?.id && // ✅ Tunggu sampai user login
       "Notification" in window &&
       navigator.serviceWorker &&
-      !localStorage.getItem("alreadySubscribed")
+      !localStorage.getItem(`subscribed_${user.id}`) // ✅ Per user, bukan global
     ) {
       Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
-          subscribeUserToPush();
-          localStorage.setItem("alreadySubscribed", "true");
+          subscribeUserToPush(user.id); // ✅ Kirim userId
+          localStorage.setItem(`subscribed_${user.id}`, "true"); // ✅ Simpan per user
         }
       });
     }
-  }, []);
+  }, [user?.id]); // ✅ PENTING: Jalankan ulang saat user login/logout
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">

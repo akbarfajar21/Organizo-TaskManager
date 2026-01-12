@@ -479,6 +479,13 @@ export default function ChatPage() {
       return;
     }
 
+    // ✅ BARU: Kirim push notification ke penerima
+    const recipientUserId = selectedUser.id;
+    const senderName =
+      user.user_metadata?.full_name || user.email || "Seseorang";
+
+    await sendPushNotification(recipientUserId, senderName, messageContent);
+
     setInput("");
   };
 
@@ -724,6 +731,27 @@ export default function ChatPage() {
       window.removeEventListener("resize", handleResize);
     };
   }, [showChatRoom]);
+
+  const sendPushNotification = async (
+    recipientUserId,
+    senderName,
+    messageText
+  ) => {
+    try {
+      await fetch("http://localhost:4000/api/send-chat-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipientUserId,
+          senderName,
+          messagePreview: messageText.substring(0, 50), // Potong jika terlalu panjang
+        }),
+      });
+      console.log("✅ Notification sent to:", recipientUserId);
+    } catch (error) {
+      console.error("❌ Failed to send push notification:", error);
+    }
+  };
 
   return (
     // ✅ Height dinamis: full screen di mobile saat chat room, normal di desktop
