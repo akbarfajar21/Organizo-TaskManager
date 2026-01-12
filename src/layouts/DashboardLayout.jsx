@@ -47,13 +47,15 @@ async function subscribeUserToPush() {
 
 export default function DashboardLayout() {
   useEffect(() => {
-    if ("Notification" in window && navigator.serviceWorker) {
+    if (
+      "Notification" in window &&
+      navigator.serviceWorker &&
+      !localStorage.getItem("alreadySubscribed")
+    ) {
       Notification.requestPermission().then((permission) => {
         if (permission === "granted") {
-          console.log("Notification permission granted.");
           subscribeUserToPush();
-        } else {
-          console.log("Notification permission denied.");
+          localStorage.setItem("alreadySubscribed", "true");
         }
       });
     }
