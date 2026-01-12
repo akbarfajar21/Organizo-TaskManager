@@ -50,8 +50,27 @@ export default function Notifications() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
+        (payload) => {
           fetchNotifications();
+
+          // Cek jika event adalah INSERT (notifikasi baru)
+          if (payload.eventType === "INSERT") {
+            const notif = payload.new;
+            // Tampilkan notifikasi push jika user sudah izinkan
+            if (
+              Notification.permission === "granted" &&
+              navigator.serviceWorker
+            ) {
+              navigator.serviceWorker.ready.then((registration) => {
+                registration.showNotification(notif.title, {
+                  body: notif.message,
+                  icon: "/logo.png", // pastikan file ada di public/
+                  tag: `notif-${notif.id}`,
+                  data: { url: "/app/notifications" }, // bisa diarahkan ke halaman notif
+                });
+              });
+            }
+          }
         }
       )
       .subscribe();
