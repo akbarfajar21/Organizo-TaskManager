@@ -38,17 +38,6 @@ async function subscribeUserToPush() {
         body: JSON.stringify(subscription),
       });
 
-      // Setelah subscription berhasil dikirim ke backend
-      await fetch("http://localhost:4000/api/send-notification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: "Selamat Datang!",
-          body: "Kamu sudah mengaktifkan notifikasi Organizo.",
-          url: "/",
-        }),
-      });
-
       console.log("User is subscribed to push notifications");
     } catch (error) {
       console.error("Failed to subscribe the user: ", error);
