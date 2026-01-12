@@ -156,19 +156,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (loading) return;
-
     if (overdueTasks.length > 0) {
       showToast({
         type: "error",
         message: `${overdueTasks.length} tugas overdue`,
         link: "/app/tasks",
         oncePerDay: true,
-      });
-      showPushNotification("Tugas Terlambat", {
-        body: `${overdueTasks.length} tugas kamu sudah melewati deadline.`,
-        icon: "/logo.png",
-        vibrate: [200, 100, 200],
-        tag: "overdue-tasks",
       });
     } else if (todayTasks.length > 0) {
       showToast({
@@ -177,22 +170,8 @@ export default function Dashboard() {
         link: "/app/tasks",
         oncePerDay: true,
       });
-      showPushNotification("Tugas Hari Ini", {
-        body: `${todayTasks.length} tugas kamu harus diselesaikan hari ini.`,
-        icon: "/logo.png",
-        vibrate: [100, 50, 100],
-        tag: "today-tasks",
-      });
     }
   }, [loading, todayTasks.length, overdueTasks.length, showToast]);
-
-  const showPushNotification = (title, options) => {
-    if (Notification.permission === "granted" && navigator.serviceWorker) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.showNotification(title, options);
-      });
-    }
-  };
 
   if (loading) {
     return (
