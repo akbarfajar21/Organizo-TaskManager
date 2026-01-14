@@ -11,9 +11,10 @@ export default defineConfig({
       manifest: {
         name: "Organizo Task Manager",
         short_name: "Organizo",
-        start_url: "/app", // UBAH INI!
+        start_url: "/app",
         display: "standalone",
         background_color: "#ffffff",
+        scope: "/", // Penting untuk deep linking
         icons: [
           {
             src: "/logo.png",
@@ -26,6 +27,24 @@ export default defineConfig({
             type: "image/png",
           },
         ],
+        // Tambahkan protocol handler untuk deep linking
+        protocol_handlers: [
+          {
+            protocol: "web+organizo",
+            url: "/reset-password?token=%s",
+          },
+        ],
+        // Share target untuk handling URL
+        share_target: {
+          action: "/",
+          method: "GET",
+          enctype: "application/x-www-form-urlencoded",
+        },
+      },
+      registerType: "autoUpdate",
+      workbox: {
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api/],
       },
     }),
   ],
