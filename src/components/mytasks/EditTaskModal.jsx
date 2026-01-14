@@ -52,7 +52,7 @@ function EditTaskModal({ editTask, setEditTask, updateTask, categories }) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Deadline
+                Tanggal Deadline
               </label>
               <input
                 type="date"
@@ -65,28 +65,46 @@ function EditTaskModal({ editTask, setEditTask, updateTask, categories }) {
               />
             </div>
 
+            {/* TAMBAHAN BARU: Input Jam di Edit Modal */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Kategori
+                Jam Deadline
               </label>
-              <select
+              <input
+                type="time"
                 className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                value={editTask.category_id || ""}
-                onChange={(e) =>
-                  setEditTask({
-                    ...editTask,
-                    category_id: e.target.value || null,
-                  })
+                value={
+                  editTask.due_time ? editTask.due_time.slice(0, 5) : "23:59"
                 }
-              >
-                <option value="">Tanpa kategori</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) =>
+                  setEditTask({ ...editTask, due_time: e.target.value + ":00" })
+                }
+                required
+              />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Kategori
+            </label>
+            <select
+              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={editTask.category_id || ""}
+              onChange={(e) =>
+                setEditTask({
+                  ...editTask,
+                  category_id: e.target.value || null,
+                })
+              }
+            >
+              <option value="">Tanpa kategori</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-3">

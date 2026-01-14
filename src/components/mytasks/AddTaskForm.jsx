@@ -5,10 +5,12 @@ function AddTaskForm({
   title,
   description,
   dueDate,
+  dueTime,
   categoryId,
   setTitle,
   setDescription,
   setDueDate,
+  setDueTime,
   setCategoryId,
   addTask,
 }) {
@@ -22,8 +24,9 @@ function AddTaskForm({
           e.preventDefault();
           addTask();
         }}
-        className="space-y-4 sm:space-y-5"
+        className="space-y-4"
       >
+        {/* Input Judul */}
         <div>
           <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Judul Tugas
@@ -38,6 +41,7 @@ function AddTaskForm({
           />
         </div>
 
+        {/* Input Deskripsi */}
         <div>
           <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             Deskripsi
@@ -51,21 +55,40 @@ function AddTaskForm({
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Deadline
-            </label>
-            <input
-              type="date"
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm sm:text-base text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-              value={dueDate}
-              min={new Date().toISOString().slice(0, 10)}
-              onChange={(e) => setDueDate(e.target.value)}
-              required
-            />
-          </div>
+        {/* ⭐ LAYOUT BARU: Deadline Section */}
+        <div className="space-y-3">
+          <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+            Deadline
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Input Tanggal */}
+            <div>
+              <input
+                type="date"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm sm:text-base text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                value={dueDate}
+                min={new Date().toISOString().slice(0, 10)}
+                onChange={(e) => setDueDate(e.target.value)}
+                required
+              />
+            </div>
 
+            {/* Input Jam */}
+            <div>
+              <input
+                type="time"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm sm:text-base text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                value={dueTime}
+                onChange={(e) => setDueTime(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Kategori dan Tombol */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Input Kategori */}
           <div>
             <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Kategori
@@ -84,6 +107,7 @@ function AddTaskForm({
             </select>
           </div>
 
+          {/* Tombol Tambah */}
           <div className="flex items-end">
             <button
               type="submit"

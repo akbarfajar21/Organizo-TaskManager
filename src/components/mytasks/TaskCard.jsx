@@ -1,6 +1,18 @@
-import { FiFolder, FiCalendar, FiEdit2, FiTrash2 } from "react-icons/fi";
+import {
+  FiFolder,
+  FiCalendar,
+  FiEdit2,
+  FiTrash2,
+  FiClock,
+} from "react-icons/fi";
 
 function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
+  // Format waktu untuk ditampilkan
+  const formatTime = (timeString) => {
+    if (!timeString) return "23:59";
+    return timeString.slice(0, 5); // Ambil HH:MM saja
+  };
+
   return (
     <article
       className={`bg-white dark:bg-gray-800 rounded-xl p-3 sm:p-4 shadow-md border-l-4 hover:shadow-lg transition-all ${
@@ -76,6 +88,17 @@ function TaskCard({ task, overdue, toggleDone, setEditTask, deleteTask }) {
                   month: "short",
                   year: "numeric",
                 })}
+              </span>
+              {/* TAMBAHAN BARU: Badge Jam */}
+              <span
+                className={`inline-flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md text-[10px] sm:text-xs font-medium ${
+                  overdue
+                    ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400"
+                    : "bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400"
+                }`}
+              >
+                <FiClock size={10} className="sm:w-3 sm:h-3" />
+                {formatTime(task.due_time)}
               </span>
             </div>
           </div>

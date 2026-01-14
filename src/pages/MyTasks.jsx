@@ -22,10 +22,12 @@ export default function MyTasks() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("23:59"); // TAMBAHAN BARU
   const [categoryId, setCategoryId] = useState("");
   const [editTask, setEditTask] = useState(null);
 
   const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
 
   // Fetch Tasks dan Categories
   useEffect(() => {
@@ -76,11 +78,11 @@ export default function MyTasks() {
   }, [user?.id]);
 
   const addTask = async () => {
-    if (!title || !dueDate) {
+    if (!title || !dueDate || !dueTime) {
       Swal.fire({
         icon: "warning",
         title: "Perhatian",
-        text: "Judul dan deadline harus diisi!",
+        text: "Judul, tanggal, dan jam deadline harus diisi!",
         confirmButtonColor: "#FBBF24",
       });
       return;
@@ -91,6 +93,7 @@ export default function MyTasks() {
       title,
       description,
       due_date: dueDate,
+      due_time: dueTime + ":00", // Format HH:MM:SS
       category_id: categoryId || null,
     });
 
@@ -107,6 +110,7 @@ export default function MyTasks() {
     setTitle("");
     setDescription("");
     setDueDate("");
+    setDueTime("23:59");
     setCategoryId("");
 
     Swal.fire({
@@ -187,6 +191,7 @@ export default function MyTasks() {
         title: editTask.title,
         description: editTask.description,
         due_date: editTask.due_date,
+        due_time: editTask.due_time,
         category_id: editTask.category_id || null,
       })
       .eq("id", editTask.id);
@@ -215,8 +220,18 @@ export default function MyTasks() {
     fetchTasks();
   };
 
-  const activeTasks = tasks.filter((t) => !t.is_done && t.due_date >= today);
-  const overdueTasks = tasks.filter((t) => !t.is_done && t.due_date < today);
+  // Helper function untuk cek apakah task overdue (termasuk jam)
+  const isTaskOverdue = (task) => {
+    if (task.is_done) return false;
+
+    const taskDateTime = new Date(
+      `${task.due_date}T${task.due_time || "23:59:00"}`
+    );
+    return taskDateTime < now;
+  };
+
+  const activeTasks = tasks.filter((t) => !t.is_done && !isTaskOverdue(t));
+  const overdueTasks = tasks.filter((t) => isTaskOverdue(t));
   const completedTasks = tasks.filter((t) => t.is_done);
 
   if (loading) {
@@ -277,10 +292,12 @@ export default function MyTasks() {
           title={title}
           description={description}
           dueDate={dueDate}
+          dueTime={dueTime} // ⭐ HARUS ADA INI
           categoryId={categoryId}
           setTitle={setTitle}
           setDescription={setDescription}
           setDueDate={setDueDate}
+          setDueTime={setDueTime} // ⭐ HARUS ADA INI
           setCategoryId={setCategoryId}
           addTask={addTask}
         />

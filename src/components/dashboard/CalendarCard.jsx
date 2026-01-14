@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Clock,
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  MapPin,
+  Tag,
+} from "lucide-react";
 import Card from "../../components/dashboard/Card";
 import { supabase } from "../../lib/supabase";
 
@@ -25,13 +32,17 @@ const CalendarCard = ({ title }) => {
     const [tasksRes, activitiesRes] = await Promise.all([
       supabase
         .from("tasks")
-        .select("id,title,due_date,is_done")
+        .select(
+          "id, title, description, due_date, due_time, is_done, category:categories(name)"
+        )
         .eq("user_id", user.id)
         .gte("due_date", start)
         .lte("due_date", end),
       supabase
         .from("activities")
-        .select("id,title,activity_date,is_completed")
+        .select(
+          "id, title, description, activity_date, start_time, end_time, location, is_completed, category:categories(name)"
+        )
         .eq("user_id", user.id)
         .gte("activity_date", start)
         .lte("activity_date", end),
@@ -94,9 +105,15 @@ const CalendarCard = ({ title }) => {
     return acc;
   }, {});
 
+  // Format waktu
+  const formatTime = (timeString) => {
+    if (!timeString) return "";
+    return timeString.slice(0, 5); // HH:MM
+  };
+
   return (
     <Card title={title} icon={Clock}>
-      {/* Calendar Header - Responsive */}
+      {/* Calendar Header */}
       <div className="flex justify-between items-center mb-3 sm:mb-4">
         <button
           onClick={() => setCurrentDate(new Date(year, month - 1, 1))}
@@ -124,7 +141,7 @@ const CalendarCard = ({ title }) => {
         </button>
       </div>
 
-      {/* Day Names - Responsive */}
+      {/* Day Names */}
       <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs mb-2">
         {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((d) => (
           <span
@@ -136,7 +153,7 @@ const CalendarCard = ({ title }) => {
         ))}
       </div>
 
-      {/* Calendar Grid - Responsive */}
+      {/* Calendar Grid */}
       <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-xs sm:text-sm">
         {Array.from({ length: firstDay }).map((_, i) => (
           <div key={`empty-${i}`} />
@@ -168,7 +185,7 @@ const CalendarCard = ({ title }) => {
                 }`}
             >
               {day}
-              {/* Indicator Dots - Responsive */}
+              {/* Indicator Dots */}
               <div className="absolute bottom-0.5 sm:bottom-1 left-1/2 flex gap-0.5 -translate-x-1/2">
                 {dayTasks.length > 0 && (
                   <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-blue-500" />
@@ -182,10 +199,11 @@ const CalendarCard = ({ title }) => {
         })}
       </div>
 
-      {/* Selected Date Details - Responsive */}
+      {/* ⭐ DETAIL LENGKAP UNTUK TANGGAL YANG DIPILIH */}
       {selectedDate && (
-        <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-          <h4 className="font-bold text-xs sm:text-sm text-gray-800 dark:text-gray-100 mb-2 sm:mb-3">
+        <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 max-h-[400px] overflow-y-auto">
+          <h4 className="font-bold text-xs sm:text-sm text-gray-800 dark:text-gray-100 mb-3 flex items-center gap-2">
+            <CalendarIcon size={16} />
             {new Date(selectedDate).toLocaleDateString("id-ID", {
               weekday: "long",
               day: "numeric",
@@ -194,87 +212,165 @@ const CalendarCard = ({ title }) => {
             })}
           </h4>
 
-          {/* Tasks for Selected Date */}
+          {/* ⭐ DETAIL TUGAS */}
           {tasksByDate[selectedDate] &&
             tasksByDate[selectedDate].length > 0 && (
-              <div className="mb-2 sm:mb-3">
-                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1 sm:mb-2">
-                  Tugas ({tasksByDate[selectedDate].length})
+              <div className="mb-4">
+                <p className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-1">
+                  📋 Tugas ({tasksByDate[selectedDate].length})
                 </p>
-                <ul className="space-y-1 sm:space-y-1.5">
+                <div className="space-y-2">
                   {tasksByDate[selectedDate].map((task) => (
-                    <li
+                    <div
                       key={task.id}
-                      className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                      className={`p-3 rounded-lg border-l-4 ${
+                        task.is_done
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                          : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
+                      }`}
                     >
-                      <div
-                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
-                          task.is_done ? "bg-green-500" : "bg-blue-500"
-                        }`}
-                      />
-                      <span
-                        className={`truncate ${
-                          task.is_done
-                            ? "line-through text-gray-400 dark:text-gray-500"
-                            : "text-gray-700 dark:text-gray-300"
-                        }`}
-                      >
-                        {task.title}
-                      </span>
-                    </li>
+                      <div className="flex items-start justify-between mb-1">
+                        <h5
+                          className={`font-semibold text-sm ${
+                            task.is_done
+                              ? "line-through text-gray-400 dark:text-gray-500"
+                              : "text-gray-800 dark:text-gray-200"
+                          }`}
+                        >
+                          {task.title}
+                        </h5>
+                        {task.is_done && (
+                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                            Selesai
+                          </span>
+                        )}
+                      </div>
+
+                      {task.description && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                          {task.description}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {/* Deadline Jam */}
+                        <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                          <Clock size={12} />
+                          <span>
+                            Deadline: {formatTime(task.due_time) || "23:59"}
+                          </span>
+                        </div>
+
+                        {/* Kategori */}
+                        {task.category && (
+                          <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                            <Tag size={12} />
+                            <span>{task.category.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
-          {/* Activities for Selected Date */}
+          {/* ⭐ DETAIL KEGIATAN */}
           {activitiesByDate[selectedDate] &&
             activitiesByDate[selectedDate].length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-green-700 dark:text-green-400 mb-1 sm:mb-2">
-                  Kegiatan ({activitiesByDate[selectedDate].length})
+                <p className="text-xs font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
+                  📅 Kegiatan ({activitiesByDate[selectedDate].length})
                 </p>
-                <ul className="space-y-1 sm:space-y-1.5">
+                <div className="space-y-2">
                   {activitiesByDate[selectedDate].map((activity) => (
-                    <li
+                    <div
                       key={activity.id}
-                      className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm"
+                      className={`p-3 rounded-lg border-l-4 ${
+                        activity.is_completed
+                          ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                          : "bg-orange-50 dark:bg-orange-900/20 border-orange-500"
+                      }`}
                     >
-                      <div
-                        className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
-                          activity.is_completed
-                            ? "bg-green-500"
-                            : "bg-orange-500"
-                        }`}
-                      />
-                      <span
-                        className={`truncate ${
-                          activity.is_completed
-                            ? "line-through text-gray-400 dark:text-gray-500"
-                            : "text-gray-700 dark:text-gray-300"
-                        }`}
-                      >
-                        {activity.title}
-                      </span>
-                    </li>
+                      <div className="flex items-start justify-between mb-1">
+                        <h5
+                          className={`font-semibold text-sm ${
+                            activity.is_completed
+                              ? "line-through text-gray-400 dark:text-gray-500"
+                              : "text-gray-800 dark:text-gray-200"
+                          }`}
+                        >
+                          {activity.title}
+                        </h5>
+                        {activity.is_completed && (
+                          <span className="text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">
+                            Selesai
+                          </span>
+                        )}
+                      </div>
+
+                      {activity.description && (
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                          {activity.description}
+                        </p>
+                      )}
+
+                      <div className="flex flex-wrap gap-2 text-xs">
+                        {/* Waktu Mulai - Selesai */}
+                        {activity.start_time && (
+                          <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                            <Clock size={12} />
+                            <span>
+                              {formatTime(activity.start_time)}
+                              {activity.end_time &&
+                                ` - ${formatTime(activity.end_time)}`}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Lokasi */}
+                        {activity.location && (
+                          <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                            <MapPin size={12} />
+                            <span>{activity.location}</span>
+                          </div>
+                        )}
+
+                        {/* Kategori */}
+                        {activity.category && (
+                          <div className="flex items-center gap-1 bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">
+                            <Tag size={12} />
+                            <span>{activity.category.name}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
-          {/* No Tasks or Activities */}
+          {/* Tidak Ada Data */}
           {(!tasksByDate[selectedDate] ||
             tasksByDate[selectedDate].length === 0) &&
             (!activitiesByDate[selectedDate] ||
               activitiesByDate[selectedDate].length === 0) && (
-              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 text-center py-2">
-                Tidak ada tugas atau kegiatan
-              </p>
+              <div className="text-center py-6">
+                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <CalendarIcon
+                    size={20}
+                    className="text-gray-400 dark:text-gray-500"
+                  />
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                  Tidak ada tugas atau kegiatan
+                </p>
+              </div>
             )}
         </div>
       )}
 
-      {/* Legend - Responsive */}
+      {/* Legend */}
       <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap gap-2 sm:gap-3 text-xs">
           <div className="flex items-center gap-1 sm:gap-1.5">
