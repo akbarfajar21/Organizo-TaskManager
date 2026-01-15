@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Activities from "./pages/Activities";
 import HelpPage from "./pages/HelpPage";
 import ChatPage from "./pages/ChatPage";
+import History from "./pages/History";
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
         <Route path="categories" element={<Categories />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="history" element={<History />} />
         <Route path="activities" element={<Activities />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="help" element={<HelpPage />} />

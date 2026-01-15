@@ -14,6 +14,7 @@ import {
   ChevronRight,
   MessageCircle,
   HelpCircle,
+  History, // ⚡ TAMBAHKAN INI
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -153,8 +154,6 @@ export default function Sidebar() {
           lg:translate-x-0
         `}
         style={{
-          // Desktop: bisa collapse (80px atau 280px)
-          // Mobile: selalu 280px (full width dengan label)
           width: window.innerWidth < 1024 ? 280 : isCollapsed ? 80 : 280,
           transition:
             "width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease-in-out",
@@ -201,7 +200,6 @@ export default function Sidebar() {
               />
             </div>
           </div>
-          {/* Mobile: selalu tampil label, Desktop: tampil jika tidak collapsed */}
           {(window.innerWidth < 1024 || !isCollapsed) && (
             <div className="text-center mt-3">
               <h1
@@ -246,6 +244,8 @@ export default function Sidebar() {
               isCollapsed={isCollapsed && window.innerWidth >= 1024}
               onClick={closeMobileMenu}
             />
+            {/* ⚡ TAMBAHKAN MENU RIWAYAT */}
+
             <SidebarItem
               to="/app/chat"
               label="Chat"
@@ -266,6 +266,13 @@ export default function Sidebar() {
               to="/app/categories"
               label="Kategori"
               icon={Tag}
+              isCollapsed={isCollapsed && window.innerWidth >= 1024}
+              onClick={closeMobileMenu}
+            />
+            <SidebarItem
+              to="/app/history"
+              label="Riwayat"
+              icon={History}
               isCollapsed={isCollapsed && window.innerWidth >= 1024}
               onClick={closeMobileMenu}
             />

@@ -1,3 +1,4 @@
+Dashboard.jsx;
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -5,6 +6,8 @@ import { useToast } from "../context/ToastContext";
 import SummaryCard from "../components/dashboard/SummaryCard";
 import Card from "../components/dashboard/Card";
 import CalendarCard from "../components/dashboard/CalendarCard";
+import TaskModal from "../components/modals/TaskModal"; // Import modal tugas
+import ActivityModal from "../components/modals/ActivityModal"; // Import modal kegiatan
 import {
   CheckCircle2,
   Clock,
@@ -24,6 +27,12 @@ export default function Dashboard() {
   const [todayActivities, setTodayActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // State untuk modal
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
+
   const today = new Date().toISOString().slice(0, 10);
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
 
@@ -38,6 +47,29 @@ export default function Dashboard() {
     if (!error) {
       setTodayActivities(data || []);
     }
+  };
+
+  // Handler untuk membuka modal tugas
+  const handleTaskClick = (task) => {
+    setSelectedTask(task);
+    setIsTaskModalOpen(true);
+  };
+
+  // Handler untuk membuka modal kegiatan
+  const handleActivityClick = (activity) => {
+    setSelectedActivity(activity);
+    setIsActivityModalOpen(true);
+  };
+
+  // Handler untuk menutup modal
+  const handleCloseTaskModal = () => {
+    setIsTaskModalOpen(false);
+    setSelectedTask(null);
+  };
+
+  const handleCloseActivityModal = () => {
+    setIsActivityModalOpen(false);
+    setSelectedActivity(null);
   };
 
   useEffect(() => {
@@ -278,7 +310,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left Section - Notifications & Activities */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          {/* ⭐ NOTIFICATIONS CARD - ENHANCED */}
+          {/* ⚡ NOTIFICATIONS CARD - ENHANCED WITH CLICK HANDLERS */}
           <Card title="Notifikasi" icon={AlertCircle}>
             {todayTasks.length === 0 &&
             overdueTasks.length === 0 &&
@@ -298,10 +330,10 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {/* Overdue Tasks - ENHANCED */}
+                {/* Overdue Tasks - ENHANCED WITH CLICK */}
                 {overdueTasks.length > 0 && (
                   <div className="group">
-                    <div className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 px-4 sm:px-5 py-3 sm:py-4 rounded-xl border border-red-200 dark:border-red-800 hover:shadow-lg transition-all cursor-pointer">
+                    <div className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm text-red-600 dark:text-red-400 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 px-4 sm:px-5 py-3 sm:py-4 rounded-xl border border-red-200 dark:border-red-800 hover:shadow-lg transition-all">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-red-100 dark:bg-red-900/40 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <AlertCircle size={20} className="sm:w-6 sm:h-6" />
                       </div>
@@ -317,12 +349,13 @@ export default function Dashboard() {
                         <p className="text-xs text-red-600/80 dark:text-red-400/80 mb-2">
                           Segera selesaikan untuk tetap produktif
                         </p>
-                        {/* Detail Tugas Terlambat */}
+                        {/* Detail Tugas Terlambat - CLICKABLE */}
                         <div className="space-y-1.5 mt-2">
                           {overdueTasks.slice(0, 3).map((task) => (
                             <div
                               key={task.id}
-                              className="flex items-center gap-2 text-xs bg-white/50 dark:bg-gray-800/50 px-2 py-1.5 rounded-lg"
+                              onClick={() => handleTaskClick(task)}
+                              className="flex items-center gap-2 text-xs bg-white/50 dark:bg-gray-800/50 px-2 py-1.5 rounded-lg hover:bg-white dark:hover:bg-gray-800 cursor-pointer transition-all hover:shadow-md"
                             >
                               <div className="w-1 h-1 rounded-full bg-red-500 flex-shrink-0" />
                               <span className="flex-1 truncate font-medium">
@@ -350,10 +383,10 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {/* Today's Tasks - ENHANCED */}
+                {/* Today's Tasks - ENHANCED WITH CLICK */}
                 {todayTasks.length > 0 && (
                   <div className="group">
-                    <div className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm text-yellow-700 dark:text-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 px-4 sm:px-5 py-3 sm:py-4 rounded-xl border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all cursor-pointer">
+                    <div className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm text-yellow-700 dark:text-yellow-400 bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 px-4 sm:px-5 py-3 sm:py-4 rounded-xl border border-yellow-200 dark:border-yellow-800 hover:shadow-lg transition-all">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <Clock size={20} className="sm:w-6 sm:h-6" />
                       </div>
@@ -369,12 +402,13 @@ export default function Dashboard() {
                         <p className="text-xs text-yellow-700/80 dark:text-yellow-400/80 mb-2">
                           Fokus pada prioritas utama hari ini
                         </p>
-                        {/* Detail Tugas Hari Ini */}
+                        {/* Detail Tugas Hari Ini - CLICKABLE */}
                         <div className="space-y-1.5 mt-2">
                           {todayTasks.slice(0, 3).map((task) => (
                             <div
                               key={task.id}
-                              className="flex items-center gap-2 text-xs bg-white/50 dark:bg-gray-800/50 px-2 py-1.5 rounded-lg"
+                              onClick={() => handleTaskClick(task)}
+                              className="flex items-center gap-2 text-xs bg-white/50 dark:bg-gray-800/50 px-2 py-1.5 rounded-lg hover:bg-white dark:hover:bg-gray-800 cursor-pointer transition-all hover:shadow-md"
                             >
                               <div className="w-1 h-1 rounded-full bg-yellow-500 flex-shrink-0" />
                               <span className="flex-1 truncate font-medium">
@@ -399,10 +433,10 @@ export default function Dashboard() {
                   </div>
                 )}
 
-                {/* Today's Activities - ENHANCED */}
+                {/* Today's Activities - ENHANCED WITH CLICK */}
                 {todayActivities.length > 0 && (
                   <div className="group">
-                    <div className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm text-blue-700 dark:text-blue-400 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 px-4 sm:px-5 py-3 sm:py-4 rounded-xl border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all cursor-pointer">
+                    <div className="flex items-start gap-3 sm:gap-4 text-xs sm:text-sm text-blue-700 dark:text-blue-400 bg-gradient-to-r from-blue-50 to-sky-50 dark:from-blue-900/20 dark:to-sky-900/20 px-4 sm:px-5 py-3 sm:py-4 rounded-xl border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
                         <Calendar size={20} className="sm:w-6 sm:h-6" />
                       </div>
@@ -418,12 +452,13 @@ export default function Dashboard() {
                         <p className="text-xs text-blue-700/80 dark:text-blue-400/80 mb-2">
                           Cek jadwal kegiatan Anda hari ini
                         </p>
-                        {/* Detail Kegiatan Hari Ini */}
+                        {/* Detail Kegiatan Hari Ini - CLICKABLE */}
                         <div className="space-y-1.5 mt-2">
                           {todayActivities.slice(0, 3).map((activity) => (
                             <div
                               key={activity.id}
-                              className="flex items-center gap-2 text-xs bg-white/50 dark:bg-gray-800/50 px-2 py-1.5 rounded-lg"
+                              onClick={() => handleActivityClick(activity)}
+                              className="flex items-center gap-2 text-xs bg-white/50 dark:bg-gray-800/50 px-2 py-1.5 rounded-lg hover:bg-white dark:hover:bg-gray-800 cursor-pointer transition-all hover:shadow-md"
                             >
                               <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0" />
                               <span className="flex-1 truncate font-medium">
@@ -451,7 +486,7 @@ export default function Dashboard() {
             )}
           </Card>
 
-          {/* ⭐ TODAY'S ACTIVITIES CARD - ENHANCED */}
+          {/* ⚡ TODAY'S ACTIVITIES CARD - ENHANCED */}
           <Card title="Kegiatan Hari Ini" icon={Calendar}>
             {todayActivities.length === 0 ? (
               <div className="text-center py-8 sm:py-10">
@@ -473,6 +508,7 @@ export default function Dashboard() {
                 {todayActivities.map((activity) => (
                   <div
                     key={activity.id}
+                    onClick={() => handleActivityClick(activity)}
                     className={`group relative flex items-start gap-3 p-3 sm:p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer ${
                       activity.is_completed
                         ? "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800"
@@ -566,6 +602,33 @@ export default function Dashboard() {
         {/* Right Section - Calendar */}
         <CalendarCard title="Kalender" />
       </div>
+
+      {/* MODALS */}
+      {isTaskModalOpen && selectedTask && (
+        <TaskModal
+          task={selectedTask}
+          onClose={handleCloseTaskModal}
+          onUpdate={() => {
+            // Refresh tasks setelah update
+            supabase
+              .from("tasks")
+              .select("*")
+              .eq("user_id", user.id)
+              .then(({ data }) => setTasks(data || []));
+          }}
+        />
+      )}
+
+      {isActivityModalOpen && selectedActivity && (
+        <ActivityModal
+          activity={selectedActivity}
+          onClose={handleCloseActivityModal}
+          onUpdate={() => {
+            // Refresh activities setelah update
+            fetchTodayActivities();
+          }}
+        />
+      )}
     </div>
   );
 }
