@@ -10,7 +10,10 @@ import { AuthProvider } from "./context/AuthContext";
 import { ProfileProvider } from "./context/ProfileContext";
 import { ToastProvider } from "./context/ToastContext";
 import { SidebarProvider } from "./context/SidebarContext";
-import { ChatProvider } from "./context/ChatContext"; // ✅ TAMBAHKAN INI
+import { ChatProvider } from "./context/ChatContext";
+import { TaskProvider } from "./context/TaskContext"; // ✅ TAMBAHKAN INI
+import { ToastContainer } from "react-toastify"; // ✅ TAMBAHKAN INI
+import "react-toastify/dist/ReactToastify.css"; // ✅ TAMBAHKAN INI
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
@@ -20,9 +23,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <SidebarProvider>
             <ChatProvider>
               <ToastProvider>
-                <BrowserRouter>
-                  <App />
-                </BrowserRouter>
+                <TaskProvider>
+                  <BrowserRouter>
+                    <App />
+                    <ToastContainer />
+                  </BrowserRouter>
+                </TaskProvider>
               </ToastProvider>
             </ChatProvider>
           </SidebarProvider>

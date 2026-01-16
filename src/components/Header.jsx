@@ -122,32 +122,51 @@ export default function Header() {
         onClick={() => navigate("/app/settings")}
       >
         <div className="text-right hidden lg:block">
-          <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[120px] xl:max-w-[150px] group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
-            {fullName}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px] xl:max-w-[150px]">
-            {user?.email}
-          </p>
+          {/* Name & Status */}
+          <div className="flex items-center justify-end gap-1.5 mb-1">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate max-w-[100px] xl:max-w-[130px] group-hover:text-yellow-600 dark:group-hover:text-yellow-400 transition-colors">
+              {fullName}
+            </p>
+            <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+          </div>
+
+          {/* Email & ID */}
+          <div className="space-y-0.5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px] xl:max-w-[150px]">
+              {user?.email}
+            </p>
+            <div className="flex items-center justify-end">
+              <span className="text-xs font-mono text-gray-400 dark:text-gray-500">
+                ID: {user?.id?.slice(0, 6)}
+              </span>
+            </div>
+          </div>
         </div>
-        <div
-          title="Klik untuk ke Pengaturan"
-          className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-gray-900 group-hover:ring-yellow-500 group-hover:scale-110 transition-all shadow-md ${
-            avatarUrl
-              ? "bg-transparent"
-              : "bg-gradient-to-br from-yellow-400 to-amber-500"
-          }`}
-        >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={fullName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <span className="font-bold text-white text-base sm:text-lg">
-              {initial}
-            </span>
-          )}
+
+        {/* Avatar with Badge */}
+        <div className="relative">
+          <div
+            title={`${fullName}\n${user?.email}\nID: ${user?.id}`}
+            className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-gray-900 group-hover:ring-yellow-500 group-hover:scale-110 transition-all shadow-md ${
+              avatarUrl
+                ? "bg-transparent"
+                : "bg-gradient-to-br from-yellow-400 to-amber-500"
+            }`}
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={fullName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="font-bold text-white text-base sm:text-lg">
+                {initial}
+              </span>
+            )}
+          </div>
+          {/* Online Badge */}
+          <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full shadow-sm"></div>
         </div>
       </div>
     </header>
