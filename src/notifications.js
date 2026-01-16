@@ -2,6 +2,23 @@ const BACKEND_URL =
   import.meta.env.VITE_BACKEND_URL ||
   "https://beckend-notification-organizo.vercel.app";
 
+// Fungsi untuk menunggu service worker benar-benar ready
+const waitForServiceWorker = async (timeout = 10000) => {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeout) {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration && registration.active) {
+      console.log("✅ Service Worker is active and ready");
+      return registration;
+    }
+    console.log("⏳ Waiting for Service Worker to activate...");
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
+  throw new Error("Service Worker did not activate in time");
+};
+
 // Meminta izin untuk push notifications
 export const requestNotificationPermission = async () => {
   console.log("🔔 Requesting notification permission...");
@@ -18,12 +35,26 @@ export const requestNotificationPermission = async () => {
     return false;
   }
 
+  if (!("PushManager" in window)) {
+    console.error("❌ Browser tidak mendukung Push Notifications");
+    alert("Browser Anda tidak mendukung Push Notifications");
+    return false;
+  }
+
   try {
+    // Tunggu service worker ready dulu
+    console.log("⏳ Menunggu Service Worker siap...");
+    await waitForServiceWorker();
+
     const permission = await Notification.requestPermission();
     console.log("📋 Notification permission:", permission);
 
     if (permission === "granted") {
       console.log("✅ Notification permission granted");
+
+      // Tambahkan delay sebelum subscribe
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const subscribed = await subscribeUserToPushNotifications();
       return subscribed;
     } else if (permission === "denied") {
@@ -36,6 +67,7 @@ export const requestNotificationPermission = async () => {
     }
   } catch (error) {
     console.error("❌ Error requesting notification permission:", error);
+    alert(`Error: ${error.message}`);
     return false;
   }
 };
@@ -43,27 +75,35 @@ export const requestNotificationPermission = async () => {
 // Fungsi untuk subscribe ke push notifications
 export const subscribeUserToPushNotifications = async () => {
   try {
-    console.log("⏳ Waiting for service worker to be ready...");
+    console.log("🔄 Starting push notification subscription...");
+
+    // Pastikan service worker ready
     const registration = await navigator.serviceWorker.ready;
     console.log("✅ Service Worker ready:", registration);
 
-    // Cek subscription yang ada
+    // Unsubscribe dari subscription lama jika ada
     let subscription = await registration.pushManager.getSubscription();
-    console.log("📱 Current subscription:", subscription);
-
-    if (!subscription) {
-      console.log("🆕 No existing subscription found. Creating new one...");
-      const publicKey = await getVapidPublicKey();
-
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: publicKey,
-      });
-
-      console.log("✅ New subscription created:", subscription);
-    } else {
-      console.log("♻️ Using existing subscription");
+    if (subscription) {
+      console.log("🔄 Unsubscribing from old subscription...");
+      await subscription.unsubscribe();
+      subscription = null;
     }
+
+    // Dapatkan VAPID public key
+    console.log("🔑 Fetching VAPID public key...");
+    const publicKey = await getVapidPublicKey();
+
+    // Delay sebentar untuk memastikan semuanya ready
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Subscribe ke push manager
+    console.log("📱 Subscribing to push manager...");
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: publicKey,
+    });
+
+    console.log("✅ Push subscription created:", subscription);
 
     // Kirim subscription ke server
     console.log(`📤 Sending subscription to: ${BACKEND_URL}/api/subscribe`);
@@ -90,7 +130,25 @@ export const subscribeUserToPushNotifications = async () => {
     return true;
   } catch (error) {
     console.error("❌ Error in push subscription:", error);
-    alert(`Gagal subscribe push notification: ${error.message}`);
+    console.error("Error details:", {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    });
+
+    // Error handling yang lebih spesifik
+    if (error.name === "NotAllowedError") {
+      alert(
+        "Notifikasi diblokir. Silakan aktifkan di pengaturan browser Anda."
+      );
+    } else if (error.name === "NotSupportedError") {
+      alert("Browser Anda tidak mendukung push notifications.");
+    } else if (error.message.includes("VAPID")) {
+      alert("Gagal mendapatkan kunci keamanan. Silakan coba lagi.");
+    } else {
+      alert(`Gagal mengaktifkan notifikasi: ${error.message}`);
+    }
+
     return false;
   }
 };
@@ -115,35 +173,56 @@ const testNotification = async (registration) => {
 // Mendapatkan VAPID public key dari backend
 const getVapidPublicKey = async () => {
   console.log(
-    `🔑 Fetching VAPID public key from: ${BACKEND_URL}/api/vapid-public-key`
+    `🔑 Fetching VAPID key from: ${BACKEND_URL}/api/vapid-public-key`
   );
 
-  const response = await fetch(`${BACKEND_URL}/api/vapid-public-key`);
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/vapid-public-key`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to fetch VAPID public key: ${response.status}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    if (!data.publicKey) {
+      throw new Error("Public key not found in response");
+    }
+
+    console.log("✅ VAPID public key received");
+
+    return urlBase64ToUint8Array(data.publicKey);
+  } catch (error) {
+    console.error("❌ Error fetching VAPID key:", error);
+    throw new Error(`Gagal mendapatkan VAPID key: ${error.message}`);
   }
-
-  const data = await response.json();
-  console.log("✅ VAPID public key fetched successfully");
-
-  return urlBase64ToUint8Array(data.publicKey);
 };
 
 // Fungsi untuk mengonversi base64 ke Uint8Array
 function urlBase64ToUint8Array(base64String) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/\-/g, "+")
-    .replace(/_/g, "/");
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
+  try {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding)
+      .replace(/\-/g, "+")
+      .replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
 
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+
+    return outputArray;
+  } catch (error) {
+    console.error("❌ Error converting base64:", error);
+    throw new Error("Invalid VAPID public key format");
   }
-
-  return outputArray;
 }
 
 // Export fungsi untuk check subscription status
@@ -158,6 +237,24 @@ export const checkSubscriptionStatus = async () => {
     return !!subscription;
   } catch (error) {
     console.error("❌ Error checking subscription:", error);
+    return false;
+  }
+};
+
+// Fungsi untuk unsubscribe
+export const unsubscribeFromPushNotifications = async () => {
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+
+    if (subscription) {
+      await subscription.unsubscribe();
+      console.log("✅ Unsubscribed from push notifications");
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("❌ Error unsubscribing:", error);
     return false;
   }
 };
