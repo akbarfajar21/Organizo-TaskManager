@@ -146,7 +146,7 @@ const TaskProvider = ({ children }) => {
     checkDeadlines();
 
     // ✅ Cek setiap 5 menit (bukan 1 menit untuk mengurangi beban)
-    const interval = setInterval(checkDeadlines, 5 * 60 * 1000);
+    const interval = setInterval(checkDeadlines, 1000);
 
     return () => clearInterval(interval);
   }, [tasks]);
