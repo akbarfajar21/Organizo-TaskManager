@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { supabase } from "../lib/supabase";
 
@@ -7,16 +7,32 @@ const TaskContext = createContext();
 const TaskProvider = ({ children }) => {
   const [tasks, setTasks] = useState([]);
 
-  // Ambil user_id dengan autentikasi
+  const fetchTasks = useCallback(async (userId) => {
+    if (!userId) {
+      console.error("User ID is undefined or invalid");
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("tasks")
+      .select("*")
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error fetching tasks:", error);
+    } else {
+      setTasks(data || []);
+    }
+  }, []);
+
   useEffect(() => {
     const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser(); // ✅ Ubah destructuring
+      const { data, error } = await supabase.auth.getUser();
 
       if (error) {
         console.error("Error fetching user:", error);
       } else if (data?.user) {
-        // ✅ Cek data.user
-        const userId = data.user.id; // ✅ Akses user.id dari data.user
+        const userId = data.user.id;
         fetchTasks(userId);
       } else {
         console.error("User is not authenticated");
@@ -24,96 +40,126 @@ const TaskProvider = ({ children }) => {
     };
 
     fetchUser();
-  }, []);
+  }, [fetchTasks]);
 
-  // Fungsi untuk mengambil tugas berdasarkan user_id (UUID)
-  const fetchTasks = async (userId) => {
-    if (!userId) {
-      console.error("User ID is undefined or invalid");
-      return; // Jangan lanjutkan jika userId tidak valid
-    }
-
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("user_id", userId); // Gunakan UUID di sini
-
-    if (error) {
-      console.error("Error fetching tasks:", error);
-    } else {
-      setTasks(data);
+  const sendPushNotification = async (title, body) => {
+    try {
+      await fetch("http://localhost:5000/api/send-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, body, link: "/app/tasks" }),
+      });
+    } catch (error) {
+      console.error("Error sending push notification:", error);
     }
   };
 
-  useEffect(() => {
-    // Misalnya, cek deadline tugas setiap detik atau menggunakan interval
-    const checkDeadlines = async () => {
-      const now = new Date().getTime();
-
-      for (let task of tasks) {
-        const deadline = new Date(task.due_date).getTime();
-
-        // Cek pengingat apakah sudah dikirimkan untuk 1 hari sebelumnya
-        if (
-          deadline - now <= 24 * 60 * 60 * 1000 &&
-          deadline - now > 0 &&
-          !task.notified_day
-        ) {
-          toast.info(
-            `Pengingat: Tugas "${task.title}" akan jatuh tempo besok!`
-          );
-          await updateNotificationStatus(task.id, "notified_day");
-        }
-
-        // Cek pengingat apakah sudah dikirimkan untuk hari H
-        if (
-          deadline - now <= 0 &&
-          deadline - now > -24 * 60 * 60 * 1000 &&
-          !task.notified_day
-        ) {
-          toast.info(`Pengingat: Tugas "${task.title}" jatuh tempo hari ini!`);
-          await updateNotificationStatus(task.id, "notified_day");
-        }
-
-        // Cek pengingat apakah sudah dikirimkan untuk 1 jam sebelumnya
-        if (
-          deadline - now <= 60 * 60 * 1000 &&
-          deadline - now > 0 &&
-          !task.notified_1hour
-        ) {
-          toast.info(
-            `Pengingat: Tugas "${task.title}" jatuh tempo dalam satu jam!`
-          );
-          await updateNotificationStatus(task.id, "notified_1hour");
-        }
-      }
-    };
-
-    // Cek deadline setiap menit (atau sesuaikan interval sesuai kebutuhan)
-    const interval = setInterval(checkDeadlines, 60000);
-
-    return () => clearInterval(interval);
-  }, [tasks]);
-
-  // Fungsi untuk memperbarui status pengingat di database
   const updateNotificationStatus = async (taskId, notificationType) => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("tasks")
       .update({ [notificationType]: true })
       .eq("id", taskId);
 
     if (error) {
-      console.error(
-        `Error updating notification status for task ${taskId}:`,
-        error
-      );
+      console.error(`Error updating notification status:`, error);
     } else {
-      console.log(`Notification status updated for task ${taskId}`);
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, [notificationType]: true } : task
+        )
+      );
     }
   };
 
+  // ✅ Fungsi untuk reset notifikasi saat tugas completed
+  const resetNotifications = async (taskId) => {
+    const { error } = await supabase
+      .from("tasks")
+      .update({
+        notified_day: false,
+        notified_today: false,
+        notified_1hour: false,
+      })
+      .eq("id", taskId);
+
+    if (error) {
+      console.error("Error resetting notifications:", error);
+    }
+  };
+
+  useEffect(() => {
+    const checkDeadlines = async () => {
+      const now = new Date().getTime();
+
+      // ✅ Filter hanya tugas yang pending
+      const pendingTasks = tasks.filter(
+        (task) => task.status === "pending" || !task.status
+      );
+
+      for (let task of pendingTasks) {
+        const deadline = new Date(task.due_date).getTime();
+
+        // ✅ Skip jika deadline sudah lewat lebih dari 24 jam
+        if (now - deadline > 24 * 60 * 60 * 1000) {
+          continue;
+        }
+
+        // Notifikasi 1 hari sebelumnya
+        if (
+          deadline - now <= 24 * 60 * 60 * 1000 &&
+          deadline - now > 60 * 60 * 1000 && // Lebih dari 1 jam
+          !task.notified_day
+        ) {
+          const message = `Pengingat: Tugas "${task.title}" akan jatuh tempo besok!`;
+          toast.info(message);
+          await sendPushNotification("Pengingat Tugas", message);
+          await updateNotificationStatus(task.id, "notified_day");
+        }
+
+        // Notifikasi 1 jam sebelumnya
+        if (
+          deadline - now <= 60 * 60 * 1000 &&
+          deadline - now > 0 &&
+          !task.notified_1hour
+        ) {
+          const message = `Pengingat: Tugas "${task.title}" jatuh tempo dalam 1 jam!`;
+          toast.warning(message);
+          await sendPushNotification("Tugas Mendesak", message);
+          await updateNotificationStatus(task.id, "notified_1hour");
+        }
+
+        // Notifikasi hari H (saat deadline tiba)
+        if (
+          deadline - now <= 0 &&
+          deadline - now > -60 * 60 * 1000 && // Dalam 1 jam terakhir
+          !task.notified_today
+        ) {
+          const message = `Pengingat: Tugas "${task.title}" jatuh tempo sekarang!`;
+          toast.error(message);
+          await sendPushNotification("Tugas Jatuh Tempo", message);
+          await updateNotificationStatus(task.id, "notified_today");
+        }
+      }
+    };
+
+    // ✅ Jalankan pertama kali
+    checkDeadlines();
+
+    // ✅ Cek setiap 5 menit (bukan 1 menit untuk mengurangi beban)
+    const interval = setInterval(checkDeadlines, 5 * 60 * 1000);
+
+    return () => clearInterval(interval);
+  }, [tasks]);
+
   return (
-    <TaskContext.Provider value={{ tasks, setTasks }}>
+    <TaskContext.Provider
+      value={{
+        tasks,
+        setTasks,
+        fetchTasks,
+        resetNotifications,
+      }}
+    >
       {children}
     </TaskContext.Provider>
   );

@@ -1,4 +1,7 @@
+import React, { useEffect } from "react"; // Tambahkan useEffect dari react
 import { Routes, Route, Navigate } from "react-router-dom";
+import { requestNotificationPermission } from "./notifications"; // Import fungsi notifikasi
+
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -19,6 +22,11 @@ import ChatPage from "./pages/ChatPage";
 import History from "./pages/History";
 
 export default function App() {
+  useEffect(() => {
+    // Meminta izin untuk push notifications saat aplikasi dimuat
+    requestNotificationPermission();
+  }, []); // Kosongkan array agar hanya berjalan sekali saat komponen pertama kali dimuat
+
   return (
     <Routes>
       {/* Public Routes */}
