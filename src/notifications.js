@@ -1,14 +1,34 @@
 export const requestNotificationPermission = async () => {
-  if ("Notification" in window && navigator.serviceWorker) {
+  if (!("Notification" in window)) {
+    alert("Browser Anda tidak mendukung notifikasi");
+    return false;
+  }
+
+  if (!navigator.serviceWorker) {
+    alert("Browser Anda tidak mendukung Service Worker");
+    return false;
+  }
+
+  try {
     const permission = await Notification.requestPermission();
+
     if (permission === "granted") {
       console.log("Notification permission granted");
       await subscribeUserToPushNotifications();
-    } else {
+      return true;
+    } else if (permission === "denied") {
       console.log("Notification permission denied");
+      return false;
+    } else {
+      console.log("Notification permission dismissed");
+      return false;
     }
+  } catch (error) {
+    console.error("Error requesting notification permission:", error);
+    return false;
   }
 };
+
 
 export const subscribeUserToPushNotifications = async () => {
   try {
