@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useProfile } from "../context/ProfileContext";
-import { requestNotificationPermission } from "../notifications";
 import {
   User,
   Mail,
@@ -14,8 +13,6 @@ import {
   Info,
   Shield,
   Key,
-  Bell,
-  BellOff,
 } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -30,9 +27,6 @@ export default function Settings() {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
-  const [notificationStatus, setNotificationStatus] = useState(
-    Notification.permission
-  );
 
   /* ================= LOAD PROFILE ================= */
   useEffect(() => {
@@ -256,50 +250,6 @@ export default function Settings() {
       confirmButtonText: "OK",
       timer: 2000,
     });
-  };
-
-  /* ================= HANDLE TOGGLE NOTIFICATIONS ================= */
-  const handleToggleNotifications = async () => {
-    if (notificationStatus === "default") {
-      const result = await requestNotificationPermission();
-      setNotificationStatus(Notification.permission);
-
-      if (result) {
-        Swal.fire({
-          toast: true,
-          position: "top-end",
-          icon: "success",
-          title: "Notifikasi diaktifkan!",
-          showConfirmButton: false,
-          timer: 2000,
-          timerProgressBar: true,
-        });
-      }
-    } else if (notificationStatus === "denied") {
-      Swal.fire({
-        icon: "info",
-        title: "Notifikasi Diblokir",
-        html: `
-          <p class="text-sm text-gray-600 mb-3">Silakan aktifkan notifikasi di pengaturan browser:</p>
-          <div class="text-left text-xs bg-gray-50 p-3 rounded-lg space-y-2">
-            <p class="font-bold">Chrome/Edge:</p>
-            <ol class="list-decimal ml-4 space-y-1">
-              <li>Klik ikon <strong>gembok</strong> di address bar</li>
-              <li>Pilih <strong>Site settings</strong></li>
-              <li>Ubah Notifications → <strong>Allow</strong></li>
-            </ol>
-            <p class="font-bold mt-3">Firefox:</p>
-            <ol class="list-decimal ml-4 space-y-1">
-              <li>Klik ikon <strong>gembok</strong></li>
-              <li>Klik <strong>More information</strong></li>
-              <li>Tab Permissions → Centang <strong>Receive Notifications</strong></li>
-            </ol>
-          </div>
-        `,
-        confirmButtonColor: "#FBBF24",
-        confirmButtonText: "Mengerti",
-      });
-    }
   };
 
   return (
@@ -539,73 +489,6 @@ export default function Settings() {
                   <Save size={16} className="sm:w-5 sm:h-5" />
                   {loading ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
-              </div>
-            </div>
-
-            {/* ================= NOTIFICATION SETTINGS CARD ================= */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 p-4 sm:p-6">
-              <div className="flex items-center gap-2 mb-4 sm:mb-5">
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                  <Bell className="text-white" size={14} />
-                </div>
-                <h3 className="font-bold text-base sm:text-lg text-gray-800 dark:text-gray-100">
-                  Notifikasi
-                </h3>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      {notificationStatus === "granted" ? (
-                        <Bell
-                          className="text-green-500 flex-shrink-0"
-                          size={16}
-                        />
-                      ) : (
-                        <BellOff
-                          className="text-gray-400 flex-shrink-0"
-                          size={16}
-                        />
-                      )}
-                      <h4 className="font-bold text-sm text-gray-800 dark:text-gray-100">
-                        Push Notifications
-                      </h4>
-                    </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
-                      Dapatkan pengingat untuk tugas yang akan jatuh tempo
-                    </p>
-                  </div>
-                  <div className="flex-shrink-0">
-                    {notificationStatus === "granted" ? (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-bold">
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                        Aktif
-                      </div>
-                    ) : (
-                      <button
-                        onClick={handleToggleNotifications}
-                        className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-lg text-xs font-bold transition-all shadow-sm hover:shadow-md"
-                      >
-                        {notificationStatus === "denied"
-                          ? "Cara Aktifkan"
-                          : "Aktifkan"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {notificationStatus === "granted" && (
-                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                    <p className="text-xs text-green-700 dark:text-green-400 flex items-start gap-2">
-                      <Info size={14} className="flex-shrink-0 mt-0.5" />
-                      <span>
-                        Anda akan menerima notifikasi untuk pengingat tugas 1
-                        hari sebelumnya, 1 jam sebelumnya, dan saat jatuh tempo.
-                      </span>
-                    </p>
-                  </div>
-                )}
               </div>
             </div>
           </div>

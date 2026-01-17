@@ -11,7 +11,6 @@ import { ProfileProvider } from "./context/ProfileContext";
 import { ToastProvider } from "./context/ToastContext";
 import { SidebarProvider } from "./context/SidebarContext";
 import { ChatProvider } from "./context/ChatContext";
-import { TaskProvider } from "./context/TaskContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -23,12 +22,10 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <SidebarProvider>
             <ChatProvider>
               <ToastProvider>
-                <TaskProvider>
-                  <BrowserRouter>
-                    <App />
-                    <ToastContainer />
-                  </BrowserRouter>
-                </TaskProvider>
+                <BrowserRouter>
+                  <App />
+                  <ToastContainer />
+                </BrowserRouter>
               </ToastProvider>
             </ChatProvider>
           </SidebarProvider>
