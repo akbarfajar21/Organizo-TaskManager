@@ -102,6 +102,13 @@ export default function Notifications() {
           iconBg: "bg-green-100 dark:bg-green-900/40",
           borderColor: "border-green-400 dark:border-green-500",
         };
+      case "activity": // Menambahkan style untuk notifikasi kegiatan
+        return {
+          icon: Bell,
+          iconColor: "text-blue-600 dark:text-blue-400",
+          iconBg: "bg-blue-100 dark:bg-blue-900/40",
+          borderColor: "border-blue-400 dark:border-blue-500",
+        };
       default:
         return {
           icon: Bell,

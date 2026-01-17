@@ -220,9 +220,8 @@ export default function MyTasks() {
     fetchTasks();
   };
 
-  // Helper function untuk cek apakah task overdue (termasuk jam)
   const isTaskOverdue = (task) => {
-    if (task.is_done) return false;
+    if (task.is_done) return false; // Tidak menampilkan tugas yang selesai
 
     const taskDateTime = new Date(
       `${task.due_date}T${task.due_time || "23:59:00"}`
@@ -230,8 +229,13 @@ export default function MyTasks() {
     return taskDateTime < now;
   };
 
-  const activeTasks = tasks.filter((t) => !t.is_done && !isTaskOverdue(t));
+  const activeTasks = tasks.filter((t) => {
+    const taskDateTime = new Date(`${t.due_date}T${t.due_time || "23:59:00"}`);
+    return !t.is_done && taskDateTime >= now && t.due_date === today;
+  });
+
   const overdueTasks = tasks.filter((t) => isTaskOverdue(t));
+
   const completedTasks = tasks.filter((t) => t.is_done);
 
   if (loading) {
@@ -277,12 +281,6 @@ export default function MyTasks() {
                 color="red"
               />
             )}
-            <StatusBadge
-              icon={FiCheckCircle}
-              label="Selesai"
-              value={completedTasks.length}
-              color="green"
-            />
           </div>
         </header>
 
@@ -302,6 +300,7 @@ export default function MyTasks() {
           addTask={addTask}
         />
 
+        {/* Task List */}
         {/* Task List */}
         <section className="space-y-6 sm:space-y-10">
           {overdueTasks.length > 0 && (
@@ -331,25 +330,6 @@ export default function MyTasks() {
               count={activeTasks.length}
             >
               {activeTasks.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  overdue={false}
-                  toggleDone={toggleDone}
-                  setEditTask={setEditTask}
-                  deleteTask={deleteTask}
-                />
-              ))}
-            </TaskSection>
-          )}
-          {completedTasks.length > 0 && (
-            <TaskSection
-              title="Tugas Selesai"
-              icon={FiCheckCircle}
-              color="green"
-              count={completedTasks.length}
-            >
-              {completedTasks.map((task) => (
                 <TaskCard
                   key={task.id}
                   task={task}

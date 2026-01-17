@@ -102,56 +102,111 @@ export default function Activities() {
     const validCategoryId = form.category_id ? form.category_id : null;
 
     try {
+      let activityId;
+      let isNewActivity = false;
+
       if (editData) {
+        // Update kegiatan yang sudah ada
         const { error } = await supabase
           .from("activities")
           .update({ ...form, category_id: validCategoryId })
           .eq("id", editData.id);
 
         if (error) {
+          console.error("Error updating activity:", error);
           Swal.fire({
             icon: "error",
             title: "Gagal!",
-            text: "Gagal memperbarui kegiatan.",
+            text: `Gagal memperbarui kegiatan: ${error.message}`,
             confirmButtonColor: "#FBBF24",
           });
           return;
         }
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "Kegiatan berhasil diperbarui.",
-          confirmButtonColor: "#FBBF24",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+        activityId = editData.id;
       } else {
-        const { error } = await supabase.from("activities").insert([
-          {
-            ...form,
-            user_id: user.id,
-            category_id: validCategoryId,
-          },
-        ]);
+        // Tambahkan kegiatan baru - GUNAKAN .select() untuk mendapatkan data yang baru dibuat
+        const { data, error } = await supabase
+          .from("activities")
+          .insert([
+            {
+              ...form,
+              user_id: user.id,
+              category_id: validCategoryId,
+            },
+          ])
+          .select(); // PENTING: Tambahkan .select() untuk mendapatkan data yang baru dibuat
 
         if (error) {
+          console.error("Error creating activity:", error);
           Swal.fire({
             icon: "error",
             title: "Gagal!",
-            text: "Gagal menambahkan kegiatan baru.",
+            text: `Gagal menambahkan kegiatan baru: ${error.message}`,
             confirmButtonColor: "#FBBF24",
           });
           return;
         }
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil!",
-          text: "Kegiatan baru berhasil ditambahkan.",
-          confirmButtonColor: "#FBBF24",
-          timer: 2000,
-          showConfirmButton: false,
-        });
+
+        // Pastikan data ada dan ambil ID-nya
+        if (!data || data.length === 0) {
+          console.error("No data returned from insert");
+          Swal.fire({
+            icon: "error",
+            title: "Gagal!",
+            text: "Gagal mendapatkan ID kegiatan yang baru dibuat.",
+            confirmButtonColor: "#FBBF24",
+          });
+          return;
+        }
+
+        activityId = data[0].id;
+        isNewActivity = true;
       }
+
+      // Hanya buat notifikasi untuk kegiatan BARU (bukan edit)
+      if (isNewActivity) {
+        const { error: notifError } = await supabase
+          .from("notifications")
+          .insert([
+            {
+              user_id: user.id,
+              title: `Kegiatan Baru: ${form.title}`,
+              message: `Kegiatan baru Anda telah ditambahkan untuk ${new Date(
+                form.activity_date
+              ).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}`,
+              created_at: new Date().toISOString(),
+              type: "activity",
+              is_read: false,
+              activity_id: activityId,
+            },
+          ]);
+
+        if (notifError) {
+          console.error("Error creating notification:", notifError);
+          // Jangan return - kegiatan sudah berhasil dibuat, notifikasi hanya bonus
+          Swal.fire({
+            icon: "warning",
+            title: "Perhatian!",
+            text: "Kegiatan berhasil ditambahkan, tapi notifikasi gagal dibuat.",
+            confirmButtonColor: "#FBBF24",
+          });
+        }
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil!",
+        text: editData
+          ? "Kegiatan berhasil diperbarui."
+          : "Kegiatan baru berhasil ditambahkan.",
+        confirmButtonColor: "#FBBF24",
+        timer: 2000,
+        showConfirmButton: false,
+      });
 
       setShowForm(false);
       setEditData(null);
@@ -166,10 +221,11 @@ export default function Activities() {
         is_completed: false,
       });
     } catch (err) {
+      console.error("Unexpected error:", err);
       Swal.fire({
         icon: "error",
         title: "Gagal!",
-        text: "Terjadi kesalahan tak terduga.",
+        text: `Terjadi kesalahan tak terduga: ${err.message}`,
         confirmButtonColor: "#FBBF24",
       });
     }
