@@ -34,7 +34,6 @@ export default defineConfig({
             url: "/reset-password?token=%s",
           },
         ],
-        // Share target untuk handling URL
         share_target: {
           action: "/",
           method: "GET",
@@ -43,7 +42,7 @@ export default defineConfig({
       },
       registerType: "autoUpdate",
       workbox: {
-        navigateFallback: "/index.html",
+        navigateFallback: "/app",
         navigateFallbackDenylist: [/^\/api/],
       },
     }),
