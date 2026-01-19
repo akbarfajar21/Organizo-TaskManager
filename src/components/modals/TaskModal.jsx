@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../context/ToastContext";
+import Swal from "sweetalert2";
 import {
   X,
   Calendar,
@@ -37,7 +38,19 @@ export default function TaskModal({ task, onClose, onUpdate }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Yakin ingin menghapus tugas ini?")) return;
+    const result = await Swal.fire({
+      title: "Hapus Tugas?",
+      text: "Tugas yang dihapus tidak dapat dikembalikan!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
 
     setIsDeleting(true);
     const { error } = await supabase.from("tasks").delete().eq("id", task.id);
@@ -45,7 +58,13 @@ export default function TaskModal({ task, onClose, onUpdate }) {
     if (error) {
       showToast({ type: "error", message: "Gagal menghapus tugas" });
     } else {
-      showToast({ type: "success", message: "Tugas berhasil dihapus" });
+      await Swal.fire({
+        title: "Terhapus!",
+        text: "Tugas berhasil dihapus",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       onUpdate();
       onClose();
     }
@@ -101,15 +120,15 @@ export default function TaskModal({ task, onClose, onUpdate }) {
                     task.priority === "high"
                       ? "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
                       : task.priority === "medium"
-                      ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
-                      : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                        ? "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400"
+                        : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                   }`}
                 >
                   {task.priority === "high"
                     ? "Prioritas Tinggi"
                     : task.priority === "medium"
-                    ? "Prioritas Sedang"
-                    : "Prioritas Rendah"}
+                      ? "Prioritas Sedang"
+                      : "Prioritas Rendah"}
                 </span>
               )}
             </div>

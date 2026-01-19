@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../context/ToastContext";
+import Swal from "sweetalert2";
 import {
   X,
   Calendar,
@@ -9,7 +10,6 @@ import {
   Tag,
   CheckCircle2,
   Trash2,
-  AlertCircle,
 } from "lucide-react";
 
 export default function ActivityModal({ activity, onClose, onUpdate }) {
@@ -40,7 +40,19 @@ export default function ActivityModal({ activity, onClose, onUpdate }) {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Yakin ingin menghapus kegiatan ini?")) return;
+    const result = await Swal.fire({
+      title: "Hapus Kegiatan?",
+      text: "Kegiatan yang dihapus tidak dapat dikembalikan!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) return;
 
     setIsDeleting(true);
     const { error } = await supabase
@@ -51,7 +63,13 @@ export default function ActivityModal({ activity, onClose, onUpdate }) {
     if (error) {
       showToast({ type: "error", message: "Gagal menghapus kegiatan" });
     } else {
-      showToast({ type: "success", message: "Kegiatan berhasil dihapus" });
+      await Swal.fire({
+        title: "Terhapus!",
+        text: "Kegiatan berhasil dihapus",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       onUpdate();
       onClose();
     }
