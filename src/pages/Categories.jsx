@@ -68,11 +68,67 @@ export default function Categories() {
     fetchCategories();
   };
 
+  const countTasksByCategory = async (categoryId) => {
+    const { count, error } = await supabase
+      .from("tasks")
+      .select("*", { count: "exact", head: true })
+      .eq("category_id", categoryId);
+
+    if (error) return 0;
+    return count || 0;
+  };
+
+  const countActivitiesByCategory = async (categoryId) => {
+    const { count, error } = await supabase
+      .from("activities")
+      .select("id", { count: "exact", head: true })
+      .eq("category_id", categoryId);
+
+    if (error) return 0;
+    return count || 0;
+  };
+
   const deleteCategory = async (id, name) => {
-    const result = await Swal.fire({
+    // 🔍 hitung task & activity
+    const taskCount = await countTasksByCategory(id);
+    const activityCount = await countActivitiesByCategory(id);
+
+    // ❌ masih digunakan
+    if (taskCount > 0 || activityCount > 0) {
+      const result = await Swal.fire({
+        icon: "error",
+        title: "Kategori Masih Digunakan",
+        html: `
+        Kategori <b>"${name}"</b> masih digunakan oleh:<br/><br/>
+        ${taskCount > 0 ? `<b>${taskCount}</b> tugas<br/>` : ""}
+        ${activityCount > 0 ? `<b>${activityCount}</b> aktivitas<br/>` : ""}
+        <br/>
+        <small>Silakan pindahkan atau hapus data terkait terlebih dahulu.</small>
+      `,
+        showCancelButton: true,
+        confirmButtonText: "Lihat Data Terkait",
+        cancelButtonText: "Tutup",
+        confirmButtonColor: "#3B82F6",
+        cancelButtonColor: "#6B7280",
+      });
+
+      if (result.isConfirmed) {
+        // 👉 prioritas ke task dulu
+        if (taskCount > 0) {
+          window.location.href = `/tasks?category=${id}`;
+        } else {
+          window.location.href = `/activities?category=${id}`;
+        }
+      }
+
+      return;
+    }
+
+    // ✅ konfirmasi hapus
+    const confirm = await Swal.fire({
       icon: "warning",
       title: "Hapus Kategori?",
-      text: `Kategori "${name}" akan dihapus`,
+      text: `Kategori "${name}" akan dihapus permanen`,
       showCancelButton: true,
       confirmButtonColor: "#EF4444",
       cancelButtonColor: "#6B7280",
@@ -80,25 +136,11 @@ export default function Categories() {
       cancelButtonText: "Batal",
     });
 
-    if (!result.isConfirmed) return;
+    if (!confirm.isConfirmed) return;
 
     const { error } = await supabase.from("categories").delete().eq("id", id);
 
     if (error) {
-      if (error.code === "23503") {
-        Swal.fire({
-          icon: "error",
-          title: "Tidak Bisa Dihapus",
-          html: `
-          Kategori <b>"${name}"</b> tidak dapat dihapus karena
-          masih digunakan pada beberapa tugas atau kegiatan.<br/><br/>
-          <small>Silakan pindahkan atau hapus tugas terkait terlebih dahulu.</small>
-        `,
-          confirmButtonColor: "#FBBF24",
-        });
-        return;
-      }
-
       Swal.fire({
         icon: "error",
         title: "Gagal",
@@ -318,7 +360,7 @@ export default function Categories() {
                           className="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                           title="Hapus kategori"
                         >
-                          <Trash2 size={12} className="sm:w-3.5 sm:h-3.5" />
+                          <Trash2 size={12} />
                         </button>
                       </div>
                     </div>
