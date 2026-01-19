@@ -68,11 +68,11 @@ export default function Categories() {
     fetchCategories();
   };
 
-  const deleteCategory = async (id) => {
+  const deleteCategory = async (id, name) => {
     const result = await Swal.fire({
       icon: "warning",
       title: "Hapus Kategori?",
-      text: "Tugas dengan kategori ini tidak akan terhapus",
+      text: `Kategori "${name}" akan dihapus`,
       showCancelButton: true,
       confirmButtonColor: "#EF4444",
       cancelButtonColor: "#6B7280",
@@ -85,10 +85,24 @@ export default function Categories() {
     const { error } = await supabase.from("categories").delete().eq("id", id);
 
     if (error) {
+      if (error.code === "23503") {
+        Swal.fire({
+          icon: "error",
+          title: "Tidak Bisa Dihapus",
+          html: `
+          Kategori <b>"${name}"</b> tidak dapat dihapus karena
+          masih digunakan pada beberapa tugas atau kegiatan.<br/><br/>
+          <small>Silakan pindahkan atau hapus tugas terkait terlebih dahulu.</small>
+        `,
+          confirmButtonColor: "#FBBF24",
+        });
+        return;
+      }
+
       Swal.fire({
         icon: "error",
         title: "Gagal",
-        text: "Gagal menghapus kategori",
+        text: "Terjadi kesalahan saat menghapus kategori",
         confirmButtonColor: "#FBBF24",
       });
       return;
@@ -97,11 +111,12 @@ export default function Categories() {
     Swal.fire({
       icon: "success",
       title: "Terhapus!",
-      text: "Kategori berhasil dihapus",
+      text: `Kategori "${name}" berhasil dihapus`,
       confirmButtonColor: "#FBBF24",
       timer: 2000,
       showConfirmButton: false,
     });
+
     fetchCategories();
   };
 
@@ -299,7 +314,7 @@ export default function Categories() {
                           <Edit2 size={12} className="sm:w-3.5 sm:h-3.5" />
                         </button>
                         <button
-                          onClick={() => deleteCategory(cat.id)}
+                          onClick={() => deleteCategory(cat.id, cat.name)}
                           className="p-1.5 sm:p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                           title="Hapus kategori"
                         >
