@@ -8,59 +8,42 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      strategies: "injectManifest",
-      srcDir: "src",
-      filename: "sw.js",
-      injectRegister: "auto",
       manifest: {
         name: "Organizo Task Manager",
         short_name: "Organizo",
         start_url: "/app",
         display: "standalone",
         background_color: "#ffffff",
-        theme_color: "#facc15",
-        orientation: "portrait-primary",
-        scope: "/",
+        scope: "/", // Penting untuk deep linking
         icons: [
           {
             src: "/logo.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any",
           },
           {
             src: "/logo.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/logo.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable",
-          },
-          {
-            src: "/logo.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
           },
         ],
-        screenshots: [
+        // Tambahkan protocol handler untuk deep linking
+        protocol_handlers: [
           {
-            src: "/screenshot.png",
-            sizes: "540x720",
-            type: "image/png",
+            protocol: "web+organizo",
+            url: "/reset-password?token=%s",
           },
         ],
+        share_target: {
+          action: "/",
+          method: "GET",
+          enctype: "application/x-www-form-urlencoded",
+        },
       },
-      injectManifest: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-      },
-      devOptions: {
-        enabled: true,
-        type: "module",
+      registerType: "autoUpdate",
+      workbox: {
+        navigateFallback: "/app",
+        navigateFallbackDenylist: [/^\/api/],
       },
     }),
   ],
