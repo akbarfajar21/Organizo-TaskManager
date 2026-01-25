@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       strategies: "injectManifest",
-      srcDir: "public",
+      srcDir: "src",
       filename: "sw.js",
       injectRegister: "auto",
       manifest: {
@@ -34,6 +34,9 @@ export default defineConfig({
             purpose: "any maskable",
           },
         ],
+      },
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
       },
       devOptions: {
         enabled: true,

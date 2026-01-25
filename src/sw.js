@@ -1,4 +1,9 @@
-// public/sw.js
+// src/sw.js
+import { precacheAndRoute } from "workbox-precaching";
+
+// Precache semua assets yang di-generate oleh Vite
+precacheAndRoute(self.__WB_MANIFEST);
+
 self.addEventListener("install", (event) => {
   console.log("Service Worker installing.");
   self.skipWaiting();
@@ -19,13 +24,11 @@ self.addEventListener("notificationclick", (event) => {
     clients
       .matchAll({ type: "window", includeUncontrolled: true })
       .then((clientList) => {
-        // Cek apakah sudah ada window yang terbuka
         for (let client of clientList) {
           if (client.url.includes(urlToOpen) && "focus" in client) {
             return client.focus();
           }
         }
-        // Jika tidak ada, buka window baru
         if (clients.openWindow) {
           return clients.openWindow(urlToOpen);
         }
@@ -38,7 +41,11 @@ self.addEventListener("push", (event) => {
   let data = {};
 
   if (event.data) {
-    data = event.data.json();
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data = { title: "Organizo", message: event.data.text() };
+    }
   }
 
   const title = data.title || "Organizo Notification";
