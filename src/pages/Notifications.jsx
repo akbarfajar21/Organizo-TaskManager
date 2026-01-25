@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
+import { useIOSPushNotification } from "../hooks/useIOSPushNotification";
 import {
   Bell,
   AlertCircle,
@@ -11,6 +12,7 @@ import {
   CheckCheck,
   BellRing,
   BellOff,
+  Smartphone,
 } from "lucide-react";
 
 export default function Notifications() {
@@ -20,6 +22,7 @@ export default function Notifications() {
   const [filter, setFilter] = useState("all");
   const { permission, isSupported, requestPermission, isGranted } =
     useNotificationPermission();
+  const { isIOS, subscribeToPush, subscription } = useIOSPushNotification();
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
 
   /* ================= FETCH NOTIFICATIONS ================= */
@@ -92,6 +95,8 @@ export default function Notifications() {
                   },
                   vibrate: [200, 100, 200],
                   requireInteraction: false,
+                  // iOS specific
+                  silent: false,
                 });
 
                 console.log("Push notification sent:", notif.title);
@@ -110,8 +115,20 @@ export default function Notifications() {
   /* ================= REQUEST NOTIFICATION PERMISSION ================= */
   const handleEnableNotifications = async () => {
     const granted = await requestPermission();
+
     if (granted) {
       console.log("Notification permission granted!");
+
+      // Untuk iOS, subscribe ke push
+      if (isIOS) {
+        const sub = await subscribeToPush();
+        if (sub) {
+          console.log("iOS Push subscription created:", sub);
+          // TODO: Simpan subscription ke database
+          // await saveSubscriptionToDatabase(sub);
+        }
+      }
+
       setShowPermissionBanner(false);
     } else {
       alert(
@@ -248,15 +265,22 @@ export default function Notifications() {
           <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-5 text-white">
             <div className="flex items-start gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                <BellRing size={20} className="sm:w-6 sm:h-6" />
+                {isIOS ? (
+                  <Smartphone size={20} className="sm:w-6 sm:h-6" />
+                ) : (
+                  <BellRing size={20} className="sm:w-6 sm:h-6" />
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="font-bold text-sm sm:text-base mb-1">
-                  Aktifkan Notifikasi Push
+                  {isIOS
+                    ? "Aktifkan Notifikasi iOS"
+                    : "Aktifkan Notifikasi Push"}
                 </h3>
                 <p className="text-xs sm:text-sm opacity-90 mb-3">
-                  Dapatkan pemberitahuan real-time untuk deadline dan aktivitas
-                  penting Anda.
+                  {isIOS
+                    ? "Anda menggunakan iOS. Untuk menerima notifikasi, izinkan notifikasi di pengaturan browser."
+                    : "Dapatkan pemberitahuan real-time untuk deadline dan aktivitas penting Anda."}
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -272,6 +296,24 @@ export default function Notifications() {
                     Nanti Saja
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* iOS Info Banner */}
+        {isIOS && isGranted && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <Smartphone
+                className="text-blue-600 dark:text-blue-400 flex-shrink-0"
+                size={18}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm text-blue-900 dark:text-blue-100">
+                  <strong>iOS Note:</strong> Notifikasi akan muncul saat app
+                  tidak aktif. Pastikan PWA sudah terinstall di home screen.
+                </p>
               </div>
             </div>
           </div>
@@ -294,7 +336,7 @@ export default function Notifications() {
               )}
               <div>
                 <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  Status Notifikasi Push
+                  Status Notifikasi Push {isIOS && "(iOS)"}
                 </p>
                 <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                   {isGranted

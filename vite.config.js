@@ -19,19 +19,39 @@ export default defineConfig({
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#facc15",
+        orientation: "portrait-primary",
         scope: "/",
         icons: [
           {
             src: "/logo.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
           },
           {
             src: "/logo.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable",
+            purpose: "any",
+          },
+          {
+            src: "/logo.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/logo.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+        screenshots: [
+          {
+            src: "/screenshot.png",
+            sizes: "540x720",
+            type: "image/png",
           },
         ],
       },
