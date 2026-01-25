@@ -48,6 +48,10 @@ export default function Activities() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    document.title = "Organizo - Kegiatan";
+  }, []);
+
   const fetchCategories = async () => {
     if (!user?.id) return;
     const { data } = await supabase
@@ -78,7 +82,7 @@ export default function Activities() {
         },
         () => {
           fetchActivities();
-        }
+        },
       )
       .subscribe();
 
@@ -172,7 +176,7 @@ export default function Activities() {
               user_id: user.id,
               title: `Kegiatan Baru: ${form.title}`,
               message: `Kegiatan baru Anda telah ditambahkan untuk ${new Date(
-                form.activity_date
+                form.activity_date,
               ).toLocaleDateString("id-ID", {
                 day: "numeric",
                 month: "long",
@@ -307,10 +311,10 @@ export default function Activities() {
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const todayActivities = activities.filter(
-    (a) => a.activity_date === todayStr
+    (a) => a.activity_date === todayStr,
   );
   const upcomingActivities = activities.filter(
-    (a) => a.activity_date > todayStr
+    (a) => a.activity_date > todayStr,
   );
 
   return (

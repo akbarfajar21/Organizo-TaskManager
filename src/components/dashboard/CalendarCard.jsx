@@ -217,7 +217,7 @@ const CalendarCard = ({ title }) => {
             tasksByDate[selectedDate].length > 0 && (
               <div className="mb-4">
                 <p className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-2 flex items-center gap-1">
-                  📋 Tugas ({tasksByDate[selectedDate].length})
+                  Tugas ({tasksByDate[selectedDate].length})
                 </p>
                 <div className="space-y-2">
                   {tasksByDate[selectedDate].map((task) => (
@@ -280,7 +280,7 @@ const CalendarCard = ({ title }) => {
             activitiesByDate[selectedDate].length > 0 && (
               <div>
                 <p className="text-xs font-bold text-green-700 dark:text-green-400 mb-2 flex items-center gap-1">
-                  📅 Kegiatan ({activitiesByDate[selectedDate].length})
+                  Kegiatan ({activitiesByDate[selectedDate].length})
                 </p>
                 <div className="space-y-2">
                   {activitiesByDate[selectedDate].map((activity) => (

@@ -25,6 +25,10 @@ export default function Login() {
     checkUser();
   }, [navigate]);
 
+  useEffect(() => {
+    document.title = "Organizo - Login";
+  }, []);
+
   // Handle OAuth callback
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(
@@ -44,7 +48,7 @@ export default function Login() {
 
           navigate("/app");
         }
-      }
+      },
     );
 
     return () => {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
 import { FolderOpen, Plus, Trash2, Edit2, Check, X, Tag } from "lucide-react";
 
 export default function Categories() {
@@ -11,6 +12,7 @@ export default function Categories() {
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState("");
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -28,6 +30,10 @@ export default function Categories() {
     setCategories(data || []);
     setLoading(false);
   };
+
+  useEffect(() => {
+    document.title = "Organizo - Kategori";
+  }, []);
 
   const addCategory = async (e) => {
     e.preventDefault();
@@ -113,11 +119,11 @@ export default function Categories() {
       });
 
       if (result.isConfirmed) {
-        // 👉 prioritas ke task dulu
-        if (taskCount > 0) {
-          window.location.href = `/tasks?category=${id}`;
-        } else {
-          window.location.href = `/activities?category=${id}`;
+        if (result.isConfirmed) {
+          navigate({
+            pathname: taskCount > 0 ? "/app/tasks" : "/app/activities",
+            search: `?category=${id}`,
+          });
         }
       }
 

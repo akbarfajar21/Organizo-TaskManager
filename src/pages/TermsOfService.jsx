@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +15,9 @@ import {
 } from "lucide-react";
 
 export default function TermsOfService() {
+  useEffect(() => {
+    document.title = "Organizo - Syarat & Ketentuan";
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-yellow-50 to-amber-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Header - Responsive */}

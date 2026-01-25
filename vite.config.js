@@ -8,42 +8,36 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
+      strategies: "injectManifest",
+      srcDir: "public",
+      filename: "sw.js",
+      injectRegister: "auto",
       manifest: {
         name: "Organizo Task Manager",
         short_name: "Organizo",
         start_url: "/app",
         display: "standalone",
         background_color: "#ffffff",
-        scope: "/", // Penting untuk deep linking
+        theme_color: "#facc15",
+        scope: "/",
         icons: [
           {
             src: "/logo.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any maskable",
           },
           {
             src: "/logo.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any maskable",
           },
         ],
-        // Tambahkan protocol handler untuk deep linking
-        protocol_handlers: [
-          {
-            protocol: "web+organizo",
-            url: "/reset-password?token=%s",
-          },
-        ],
-        share_target: {
-          action: "/",
-          method: "GET",
-          enctype: "application/x-www-form-urlencoded",
-        },
       },
-      registerType: "autoUpdate",
-      workbox: {
-        navigateFallback: "/app",
-        navigateFallbackDenylist: [/^\/api/],
+      devOptions: {
+        enabled: true,
+        type: "module",
       },
     }),
   ],

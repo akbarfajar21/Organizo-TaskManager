@@ -4,7 +4,12 @@ import { useAuth } from "../context/AuthContext";
 import Swal from "sweetalert2";
 
 // Import icons from react-icons
-import { FiClock, FiAlertCircle, FiCheckCircle } from "react-icons/fi";
+import {
+  FiClock,
+  FiAlertCircle,
+  FiCheckCircle,
+  FiCalendar,
+} from "react-icons/fi";
 
 // Import komponen dari folder mytasks
 import TaskSection from "../components/mytasks/TaskSection";
@@ -47,6 +52,10 @@ export default function MyTasks() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    document.title = "Organizo - Tugas Saya";
+  }, []);
+  
   const fetchCategories = async () => {
     const { data } = await supabase
       .from("categories")
@@ -70,7 +79,7 @@ export default function MyTasks() {
           table: "tasks",
           filter: `user_id=eq.${user.id}`,
         },
-        () => fetchTasks()
+        () => fetchTasks(),
       )
       .subscribe();
 
@@ -182,6 +191,10 @@ export default function MyTasks() {
     fetchTasks();
   };
 
+  const getTaskDateTime = (task) => {
+    return new Date(`${task.due_date}T${task.due_time || "23:59:00"}`);
+  };
+
   const updateTask = async () => {
     if (!editTask) return;
 
@@ -224,19 +237,35 @@ export default function MyTasks() {
     if (task.is_done) return false; // Tidak menampilkan tugas yang selesai
 
     const taskDateTime = new Date(
-      `${task.due_date}T${task.due_time || "23:59:00"}`
+      `${task.due_date}T${task.due_time || "23:59:00"}`,
     );
     return taskDateTime < now;
   };
 
-  const activeTasks = tasks.filter((t) => {
-    const taskDateTime = new Date(`${t.due_date}T${t.due_time || "23:59:00"}`);
-    return !t.is_done && taskDateTime >= now && t.due_date === today;
+  const activeTasks = tasks.filter((task) => {
+    if (task.is_done) return false;
+    return getTaskDateTime(task) >= now;
   });
 
-  const overdueTasks = tasks.filter((t) => isTaskOverdue(t));
+  const overdueTasks = tasks.filter((task) => {
+    if (task.is_done) return false;
+    return getTaskDateTime(task) < now;
+  });
 
-  const completedTasks = tasks.filter((t) => t.is_done);
+  const todayTasks = tasks.filter((task) => {
+    if (task.is_done) return false;
+
+    const taskTime = getTaskDateTime(task);
+    return task.due_date === today && taskTime >= now;
+  });
+
+  const upcomingTasks = tasks.filter((task) => {
+    if (task.is_done) return false;
+
+    return task.due_date > today;
+  });
+
+  const completedTasks = tasks.filter((task) => task.is_done);
 
   if (loading) {
     return (
@@ -300,9 +329,8 @@ export default function MyTasks() {
           addTask={addTask}
         />
 
-        {/* Task List */}
-        {/* Task List */}
         <section className="space-y-6 sm:space-y-10">
+          {/* 🔴 TUGAS TERLAMBAT */}
           {overdueTasks.length > 0 && (
             <TaskSection
               title="Tugas Terlambat"
@@ -314,7 +342,7 @@ export default function MyTasks() {
                 <TaskCard
                   key={task.id}
                   task={task}
-                  overdue={true}
+                  overdue
                   toggleDone={toggleDone}
                   setEditTask={setEditTask}
                   deleteTask={deleteTask}
@@ -322,14 +350,16 @@ export default function MyTasks() {
               ))}
             </TaskSection>
           )}
-          {activeTasks.length > 0 && (
+
+          {/* 🔵 TUGAS HARI INI */}
+          {todayTasks.length > 0 && (
             <TaskSection
-              title="Tugas Aktif"
+              title="Tugas Hari Ini"
               icon={FiClock}
               color="blue"
-              count={activeTasks.length}
+              count={todayTasks.length}
             >
-              {activeTasks.map((task) => (
+              {todayTasks.map((task) => (
                 <TaskCard
                   key={task.id}
                   task={task}
@@ -341,6 +371,44 @@ export default function MyTasks() {
               ))}
             </TaskSection>
           )}
+
+          {/* 🟦 TUGAS MENDATANG */}
+          {upcomingTasks.length > 0 && (
+            <TaskSection
+              title="Tugas Mendatang"
+              icon={FiCalendar}
+              color="green"
+              count={upcomingTasks.length}
+            >
+              {upcomingTasks.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  overdue={false}
+                  toggleDone={toggleDone}
+                  setEditTask={setEditTask}
+                  deleteTask={deleteTask}
+                />
+              ))}
+            </TaskSection>
+          )}
+
+          {overdueTasks.length === 0 &&
+            todayTasks.length === 0 &&
+            upcomingTasks.length === 0 && (
+              <div className="flex justify-center">
+                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl px-6 py-8 text-center shadow-md max-w-sm w-full">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Semua tugas selesai!
+                  </h3>
+
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Tidak ada tugas aktif, terlambat, atau mendatang saat ini.
+                    Nikmati waktu luangmu
+                  </p>
+                </div>
+              </div>
+            )}
         </section>
 
         {/* Modal Edit Task */}

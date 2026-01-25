@@ -47,6 +47,10 @@ export default function Settings() {
     }
   }, [profile]);
 
+  useEffect(() => {
+    document.title = "Organizo - Pengaturan";
+  }, []);
+
   /* ================= GENERATE AVATAR ================= */
   const generateAvatar = () => {
     const seed = name || user.email;
@@ -60,7 +64,7 @@ export default function Settings() {
       case "sunset":
       case "marble":
         url = `https://source.boringavatars.com/${avatarStyle}/120/${encodeURIComponent(
-          seed
+          seed,
         )}?colors=FBBF24,F59E0B,D97706,B45309,92400E`;
         break;
 
@@ -73,13 +77,13 @@ export default function Settings() {
       case "notionists":
       case "thumbs":
         url = `https://api.dicebear.com/7.x/${avatarStyle}/svg?seed=${encodeURIComponent(
-          seed
+          seed,
         )}`;
         break;
 
       case "initials":
         url = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          name || user.email
+          name || user.email,
         )}&background=FBBF24&color=1F2937&size=200&bold=true`;
         break;
     }

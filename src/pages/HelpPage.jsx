@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   HelpCircle,
   Book,
@@ -19,6 +19,10 @@ import {
 
 export default function HelpPage() {
   const [openFaq, setOpenFaq] = useState(null);
+
+  useEffect(() => {
+    document.title = "Organizo - Bantuan";
+  }, []);
 
   const toggleFaq = (index) => {
     setOpenFaq(openFaq === index ? null : index);

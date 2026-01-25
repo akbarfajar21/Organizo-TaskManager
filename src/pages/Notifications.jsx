@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import {
   Bell,
   AlertCircle,
@@ -8,13 +9,18 @@ import {
   Clock,
   Trash2,
   CheckCheck,
+  BellRing,
+  BellOff,
 } from "lucide-react";
 
 export default function Notifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, unread, read
+  const [filter, setFilter] = useState("all");
+  const { permission, isSupported, requestPermission, isGranted } =
+    useNotificationPermission();
+  const [showPermissionBanner, setShowPermissionBanner] = useState(false);
 
   /* ================= FETCH NOTIFICATIONS ================= */
   const fetchNotifications = async () => {
@@ -33,8 +39,21 @@ export default function Notifications() {
   };
 
   useEffect(() => {
+    document.title = "Organizo - Notifikasi";
+  }, []);
+
+  useEffect(() => {
     fetchNotifications();
   }, [user]);
+
+  // Check if should show permission banner
+  useEffect(() => {
+    if (isSupported && permission === "default") {
+      setShowPermissionBanner(true);
+    } else {
+      setShowPermissionBanner(false);
+    }
+  }, [isSupported, permission]);
 
   /* ================= REALTIME SUBSCRIPTION ================= */
   useEffect(() => {
@@ -50,33 +69,56 @@ export default function Notifications() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        (payload) => {
+        async (payload) => {
           fetchNotifications();
 
-          // Cek jika event adalah INSERT (notifikasi baru)
+          // Jika event adalah INSERT (notifikasi baru)
           if (payload.eventType === "INSERT") {
             const notif = payload.new;
-            // Tampilkan notifikasi push jika user sudah izinkan
-            if (
-              Notification.permission === "granted" &&
-              navigator.serviceWorker
-            ) {
-              navigator.serviceWorker.ready.then((registration) => {
-                registration.showNotification(notif.title, {
+
+            // Cek permission dan service worker
+            if (isGranted && "serviceWorker" in navigator) {
+              try {
+                const registration = await navigator.serviceWorker.ready;
+
+                await registration.showNotification(notif.title, {
                   body: notif.message,
-                  icon: "/logo.png", // pastikan file ada di public/
+                  icon: "/logo.png",
+                  badge: "/logo.png",
                   tag: `notif-${notif.id}`,
-                  data: { url: "/app/notifications" }, // bisa diarahkan ke halaman notif
+                  data: {
+                    url: "/app/notifications",
+                    notifId: notif.id,
+                  },
+                  vibrate: [200, 100, 200],
+                  requireInteraction: false,
                 });
-              });
+
+                console.log("Push notification sent:", notif.title);
+              } catch (error) {
+                console.error("Error showing notification:", error);
+              }
             }
           }
-        }
+        },
       )
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [user?.id]);
+  }, [user?.id, isGranted]);
+
+  /* ================= REQUEST NOTIFICATION PERMISSION ================= */
+  const handleEnableNotifications = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      console.log("Notification permission granted!");
+      setShowPermissionBanner(false);
+    } else {
+      alert(
+        "Izin notifikasi ditolak. Anda dapat mengaktifkannya di pengaturan browser.",
+      );
+    }
+  };
 
   /* ================= ICON & COLOR BY TYPE ================= */
   const getNotificationStyle = (type) => {
@@ -102,7 +144,7 @@ export default function Notifications() {
           iconBg: "bg-green-100 dark:bg-green-900/40",
           borderColor: "border-green-400 dark:border-green-500",
         };
-      case "activity": // Menambahkan style untuk notifikasi kegiatan
+      case "activity":
         return {
           icon: Bell,
           iconColor: "text-blue-600 dark:text-blue-400",
@@ -201,6 +243,79 @@ export default function Notifications() {
   return (
     <div className="min-h-screen p-3 sm:p-4 lg:p-6 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
+        {/* Permission Banner */}
+        {showPermissionBanner && (
+          <div className="bg-gradient-to-r from-yellow-400 to-amber-500 rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-5 text-white">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <BellRing size={20} className="sm:w-6 sm:h-6" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-bold text-sm sm:text-base mb-1">
+                  Aktifkan Notifikasi Push
+                </h3>
+                <p className="text-xs sm:text-sm opacity-90 mb-3">
+                  Dapatkan pemberitahuan real-time untuk deadline dan aktivitas
+                  penting Anda.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleEnableNotifications}
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-yellow-600 rounded-lg font-semibold text-xs sm:text-sm hover:bg-gray-100 transition-all"
+                  >
+                    Aktifkan Sekarang
+                  </button>
+                  <button
+                    onClick={() => setShowPermissionBanner(false)}
+                    className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 rounded-lg font-semibold text-xs sm:text-sm hover:bg-white/30 transition-all"
+                  >
+                    Nanti Saja
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Notification Status Indicator */}
+        {isSupported && (
+          <div className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-md border border-gray-200 dark:border-gray-700 p-3 sm:p-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              {isGranted ? (
+                <BellRing
+                  className="text-green-600 dark:text-green-400"
+                  size={18}
+                />
+              ) : (
+                <BellOff
+                  className="text-gray-400 dark:text-gray-500"
+                  size={18}
+                />
+              )}
+              <div>
+                <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  Status Notifikasi Push
+                </p>
+                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                  {isGranted
+                    ? "Aktif"
+                    : permission === "denied"
+                      ? "Diblokir"
+                      : "Belum diaktifkan"}
+                </p>
+              </div>
+            </div>
+            {!isGranted && permission !== "denied" && (
+              <button
+                onClick={handleEnableNotifications}
+                className="px-2.5 sm:px-3 py-1.5 sm:py-2 bg-yellow-400 hover:bg-yellow-500 text-white rounded-lg font-semibold text-xs sm:text-sm transition-all"
+              >
+                Aktifkan
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Header - Responsive */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex-1 min-w-0">

@@ -50,6 +50,10 @@ export default function History() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    document.title = "Organizo - Riwayat";
+  }, []);
+
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter((t) => t.is_done).length;
   const pendingTasks = totalTasks - completedTasks;

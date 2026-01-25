@@ -27,8 +27,10 @@ export default function ChatPage() {
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
   const { fetchTotalUnread } = useChat();
 
-  // ✅ TAMBAHKAN STATE INI untuk mobile view
   const [showChatRoom, setShowChatRoom] = useState(false);
+
+  const [isLoadingChats, setIsLoadingChats] = useState(true); // Loading untuk recent chats
+  const [isLoadingSearch, setIsLoadingSearch] = useState(false); // Loading untuk search
 
   // Modal tugas/kegiatan
   const [showModal, setShowModal] = useState(false);
@@ -65,28 +67,42 @@ export default function ChatPage() {
     };
   }, []);
 
+  useEffect(() => {
+    document.title = "Organizo - Chat";
+  }, []);
+
   // --- Fetch semua user kecuali diri sendiri ---
   useEffect(() => {
     if (!user?.id) return;
 
     const fetchUsers = async () => {
+      // Cek apakah search sedang dilakukan
+      if (search.trim() !== "") {
+        setIsLoadingSearch(true); // ✅ Set loading untuk search
+      }
+
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url, user_id")
         .neq("id", user.id);
 
       if (error) {
+        // Handle error
       } else {
         setUsers(data || []);
       }
+
+      setIsLoadingSearch(false); // ✅ Set loading false setelah selesai
     };
 
     fetchUsers();
-  }, [user?.id]);
+  }, [user?.id, search]);
 
   // --- Fetch recent chats dan unread counts ---
   const fetchRecentChatsWithUnread = async () => {
     if (!user?.id) return;
+
+    setIsLoadingChats(true); // ✅ Set loading true sebelum fetch
 
     const { data: chats, error: chatError } = await supabase
       .from("chats")
@@ -97,6 +113,7 @@ export default function ChatPage() {
       setRecentChats([]);
       setUnreadCounts({});
       setTotalUnreadMessages(0);
+      setIsLoadingChats(false); // ✅ Set loading false setelah selesai
       return;
     }
 
@@ -111,6 +128,7 @@ export default function ChatPage() {
       setRecentChats([]);
       setUnreadCounts({});
       setTotalUnreadMessages(0);
+      setIsLoadingChats(false); // ✅ Set loading false setelah selesai
       return;
     }
 
@@ -125,6 +143,7 @@ export default function ChatPage() {
       setRecentChats([]);
       setUnreadCounts({});
       setTotalUnreadMessages(0);
+      setIsLoadingChats(false); // ✅ Set loading false setelah selesai
       return;
     }
 
@@ -150,6 +169,7 @@ export default function ChatPage() {
       setRecentChats([]);
       setUnreadCounts({});
       setTotalUnreadMessages(0);
+      setIsLoadingChats(false); // ✅ Set loading false setelah selesai
       return;
     }
 
@@ -171,7 +191,7 @@ export default function ChatPage() {
         if (chat) {
           const deletedBy = chat.deleted_by || [];
           const userDeleted = deletedBy.find(
-            (item) => item.user_id === user.id
+            (item) => item.user_id === user.id,
           );
 
           if (userDeleted && userDeleted.deleted_at) {
@@ -195,7 +215,7 @@ export default function ChatPage() {
     const recent = chatsWithRecentMessages.map((c) => {
       const otherUser =
         profiles.find(
-          (p) => p.id === (c.user1_id === user.id ? c.user2_id : c.user1_id)
+          (p) => p.id === (c.user1_id === user.id ? c.user2_id : c.user1_id),
         ) || {};
       return {
         chat_id: c.id,
@@ -218,8 +238,8 @@ export default function ChatPage() {
     });
 
     setRecentChats(sortedRecent);
+    setIsLoadingChats(false); // ✅ Set loading false setelah selesai
   };
-
   useEffect(() => {
     fetchRecentChatsWithUnread();
   }, [user?.id]);
@@ -249,7 +269,7 @@ export default function ChatPage() {
 
           setRecentChats((prevChats) => {
             const chatIndex = prevChats.findIndex(
-              (c) => c.chat_id === payload.new.chat_id
+              (c) => c.chat_id === payload.new.chat_id,
             );
 
             if (chatIndex > 0) {
@@ -263,7 +283,7 @@ export default function ChatPage() {
 
             return prevChats;
           });
-        }
+        },
       )
       .subscribe();
 
@@ -319,7 +339,7 @@ export default function ChatPage() {
         .from("chats")
         .select("id, user1_id, user2_id, deleted_by, created_at")
         .or(
-          `and(user1_id.eq.${user.id},user2_id.eq.${selectedUser.id}),and(user1_id.eq.${selectedUser.id},user2_id.eq.${user.id})`
+          `and(user1_id.eq.${user.id},user2_id.eq.${selectedUser.id}),and(user1_id.eq.${selectedUser.id},user2_id.eq.${user.id})`,
         )
         .maybeSingle();
 
@@ -389,7 +409,7 @@ export default function ChatPage() {
                 fetchTotalUnread();
               }, 500);
             }
-          }
+          },
         )
         .subscribe();
     };
@@ -416,7 +436,7 @@ export default function ChatPage() {
       .from("chats")
       .select("*")
       .or(
-        `and(user1_id.eq.${user.id},user2_id.eq.${selectedUser.id}),and(user1_id.eq.${selectedUser.id},user2_id.eq.${user.id})`
+        `and(user1_id.eq.${user.id},user2_id.eq.${selectedUser.id}),and(user1_id.eq.${selectedUser.id},user2_id.eq.${user.id})`,
       )
       .maybeSingle();
 
@@ -472,7 +492,7 @@ export default function ChatPage() {
     }
 
     setMessages((prevMessages) =>
-      prevMessages.filter((msg) => msg.id !== messageId)
+      prevMessages.filter((msg) => msg.id !== messageId),
     );
   };
 
@@ -668,7 +688,7 @@ export default function ChatPage() {
   const sendPushNotification = async (
     recipientUserId,
     senderName,
-    messageText
+    messageText,
   ) => {
     try {
       await fetch("http://localhost:4000/api/send-chat-notification", {
@@ -718,6 +738,8 @@ export default function ChatPage() {
           setOpenChatDropdown={setOpenChatDropdown}
           handleDeleteChat={handleDeleteChat}
           chatDropdownRef={chatDropdownRef}
+          isLoadingChats={isLoadingChats}
+          isLoadingSearch={isLoadingSearch}
         />
       </div>
 

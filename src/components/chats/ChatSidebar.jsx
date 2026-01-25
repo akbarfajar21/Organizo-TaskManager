@@ -1,5 +1,4 @@
-// src/components/chats/ChatSidebar.jsx
-import { MoreVertical, Trash2, Search } from "lucide-react";
+import { MoreVertical, Trash2, Search, Loader } from "lucide-react";
 
 export default function ChatSidebar({
   search,
@@ -13,6 +12,8 @@ export default function ChatSidebar({
   setOpenChatDropdown,
   handleDeleteChat,
   chatDropdownRef,
+  isLoadingChats, // ✅ State loading untuk recent chats
+  isLoadingSearch, // ✅ State loading untuk search
 }) {
   return (
     <div className="w-full md:w-80 border-r border-gray-200/80 dark:border-gray-700/50 flex flex-col bg-gradient-to-b from-white to-gray-50/30 dark:from-gray-900 dark:to-gray-900/95 backdrop-blur-sm">
@@ -41,7 +42,17 @@ export default function ChatSidebar({
       {/* ✅ Hasil Pencarian */}
       {search.trim() !== "" && (
         <div className="border-b border-gray-200/80 dark:border-gray-700/50 max-h-60 overflow-y-auto bg-gradient-to-b from-gray-50/80 to-gray-100/50 dark:from-gray-800/50 dark:to-gray-800/30 backdrop-blur-sm">
-          {filteredUsers.length > 0 ? (
+          {isLoadingSearch ? (
+            <div className="p-6 text-center">
+              <Loader
+                size={24}
+                className="text-yellow-500 animate-spin mx-auto mb-2"
+              />
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
+                Mencari user...
+              </p>
+            </div>
+          ) : filteredUsers.length > 0 ? (
             filteredUsers.map((u) => (
               <div
                 key={u.id}
@@ -83,7 +94,19 @@ export default function ChatSidebar({
 
       {/* ✅ Daftar Chat Terbaru */}
       <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
-        {recentChats.length === 0 ? (
+        {isLoadingChats ? (
+          // ✅ Loading State - Tampilkan spinner saat loading
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <Loader size={32} className="text-yellow-500 animate-spin mb-3" />
+            <p className="text-gray-600 dark:text-gray-300 text-base font-semibold mb-1">
+              Memuat percakapan...
+            </p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm">
+              Tunggu sebentar
+            </p>
+          </div>
+        ) : recentChats.length === 0 ? (
+          // ✅ Empty State - Tampilkan jika tidak ada chat
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">
             <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-2xl flex items-center justify-center mb-4 shadow-sm">
               <Search size={32} className="text-gray-400" />
@@ -91,11 +114,21 @@ export default function ChatSidebar({
             <p className="text-gray-600 dark:text-gray-300 text-base font-semibold mb-1">
               Belum ada percakapan
             </p>
-            <p className="text-gray-400 dark:text-gray-500 text-sm">
-              Cari user untuk memulai chat
+            <p className="text-gray-400 dark:text-gray-500 text-sm mb-3">
+              Mulai chat dengan mencari User ID
             </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <Search
+                size={16}
+                className="text-yellow-600 dark:text-yellow-400"
+              />
+              <span className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
+                Gunakan kotak pencarian di atas
+              </span>
+            </div>
           </div>
         ) : (
+          // ✅ Daftar Chat
           recentChats.map((chat) => {
             const isSelected = selectedUser?.id === chat.id;
             const unreadCount = unreadCounts[chat.chat_id] || 0;
@@ -149,13 +182,12 @@ export default function ChatSidebar({
                   </p>
                 </div>
 
-                {/* Dropdown Menu */}
                 <div className="relative flex-shrink-0" ref={chatDropdownRef}>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setOpenChatDropdown(
-                        openChatDropdown === chat.chat_id ? null : chat.chat_id
+                        openChatDropdown === chat.chat_id ? null : chat.chat_id,
                       );
                     }}
                     className="p-2 hover:bg-gray-200/80 dark:hover:bg-gray-700/80 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"

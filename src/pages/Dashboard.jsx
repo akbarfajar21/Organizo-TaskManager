@@ -49,6 +49,10 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    document.title = "Organizo - Dashboard";
+  }, []);
+
   // Handler untuk membuka modal tugas
   const handleTaskClick = (task) => {
     setSelectedTask(task);
@@ -124,7 +128,7 @@ export default function Dashboard() {
             .select("*")
             .eq("user_id", user.id)
             .then(({ data }) => setTasks(data || []));
-        }
+        },
       )
       .subscribe();
 
@@ -146,7 +150,7 @@ export default function Dashboard() {
         },
         () => {
           fetchTodayActivities();
-        }
+        },
       )
       .subscribe();
 
@@ -161,10 +165,10 @@ export default function Dashboard() {
 
   const previousTotal = previousTasks.length;
   const previousTodayTasks = previousTasks.filter(
-    (t) => t.due_date === yesterday && !t.is_done
+    (t) => t.due_date === yesterday && !t.is_done,
   );
   const previousOverdueTasks = previousTasks.filter(
-    (t) => t.due_date < yesterday && !t.is_done
+    (t) => t.due_date < yesterday && !t.is_done,
   );
 
   const calculateTrend = (current, previous) => {
@@ -178,14 +182,14 @@ export default function Dashboard() {
   const totalTrend = calculateTrend(total, previousTotal);
   const todayTrend = calculateTrend(
     todayTasks.length,
-    previousTodayTasks.length
+    previousTodayTasks.length,
   );
   const overdueTrend =
     overdueTasks.length === 0
       ? "Bagus!"
       : overdueTasks.length > previousOverdueTasks.length
-      ? "Perlu perhatian"
-      : "Membaik";
+        ? "Perlu perhatian"
+        : "Membaik";
   const completionTrend = `${completionRate}%`;
 
   useEffect(() => {
@@ -246,8 +250,8 @@ export default function Dashboard() {
             totalTrend.includes("+")
               ? "up"
               : totalTrend.includes("-")
-              ? "down"
-              : "neutral"
+                ? "down"
+                : "neutral"
           }
         />
         <SummaryCard
@@ -262,8 +266,8 @@ export default function Dashboard() {
             todayTrend.includes("+")
               ? "up"
               : todayTrend.includes("-")
-              ? "down"
-              : "neutral"
+                ? "down"
+                : "neutral"
           }
         />
         <SummaryCard
@@ -278,8 +282,8 @@ export default function Dashboard() {
             overdueTrend === "Bagus!"
               ? "good"
               : overdueTrend === "Perlu perhatian"
-              ? "bad"
-              : "neutral"
+                ? "bad"
+                : "neutral"
           }
         />
         <SummaryCard
@@ -367,7 +371,7 @@ export default function Dashboard() {
                                   {
                                     day: "numeric",
                                     month: "short",
-                                  }
+                                  },
                                 )}
                               </span>
                             </div>

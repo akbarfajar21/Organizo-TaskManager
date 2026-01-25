@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabase";
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -22,6 +22,10 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    document.title = "Organizo - Daftar";
+  }, []);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -238,8 +242,8 @@ export default function Register() {
                         passwordStrength.label === "Lemah"
                           ? "text-red-600 dark:text-red-400"
                           : passwordStrength.label === "Sedang"
-                          ? "text-yellow-600 dark:text-yellow-400"
-                          : "text-green-600 dark:text-green-400"
+                            ? "text-yellow-600 dark:text-yellow-400"
+                            : "text-green-600 dark:text-green-400"
                       }`}
                     >
                       {passwordStrength.label}
@@ -272,8 +276,8 @@ export default function Register() {
                     confirmPassword && password !== confirmPassword
                       ? "border-red-300 dark:border-red-700 focus:ring-red-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       : confirmPassword && password === confirmPassword
-                      ? "border-green-300 dark:border-green-700 focus:ring-green-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                      : "border-gray-200 dark:border-gray-600 focus:ring-yellow-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        ? "border-green-300 dark:border-green-700 focus:ring-green-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        : "border-gray-200 dark:border-gray-600 focus:ring-yellow-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   }`}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
