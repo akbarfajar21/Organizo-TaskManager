@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import {
-  sendUserIdToServiceWorker,
-  setupServiceWorkerMessageHandler,
-} from "../utils/serviceWorkerHelper";
+  subscribeUser,
+  isOneSignalReady,
+  getSubscriptionStatus,
+} from "../lib/onesignal";
 
 const AuthContext = createContext();
 
@@ -13,7 +14,6 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Menggunakan getSession() yang benar
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setUser(data.session?.user ?? null);
@@ -30,30 +30,66 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Setup Service Worker Communication untuk Background Notifications
+  // Auto-subscribe to OneSignal when user logs in
   useEffect(() => {
-    if (user?.id) {
-      // Kirim user ID ke service worker saat user login
-      sendUserIdToServiceWorker(user.id);
+    let timeoutId;
 
-      // Setup handler untuk service worker yang request user ID
-      setupServiceWorkerMessageHandler(() => user.id);
+    const setupOneSignal = async () => {
+      if (user?.id) {
+        // Wait for OneSignal to be ready
+        const maxAttempts = 30; // 30 attempts * 500ms = 15 seconds
+        let attempts = 0;
 
-      console.log("User ID sent to Service Worker:", user.id);
-    }
-  }, [user]);
+        while (!isOneSignalReady() && attempts < maxAttempts) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          attempts++;
+        }
 
-  // Tambahan: Cache user data untuk offline access
-  useEffect(() => {
-    if (user) {
-      // Simpan user data ke localStorage sebagai backup
-      localStorage.setItem("organizo_user_id", user.id);
-      localStorage.setItem("organizo_user_email", user.email);
-    } else {
-      // Clear saat logout
-      localStorage.removeItem("organizo_user_id");
-      localStorage.removeItem("organizo_user_email");
-    }
+        if (!isOneSignalReady()) {
+          console.warn("OneSignal not ready for auto-subscription");
+          return;
+        }
+
+        // Check if already subscribed
+        const status = await getSubscriptionStatus();
+
+        if (
+          status.supported &&
+          !status.subscribed &&
+          status.permission === "default"
+        ) {
+          // Wait 3 seconds before prompting (better UX)
+          timeoutId = setTimeout(async () => {
+            try {
+              const subscribed = await subscribeUser(user.id, user.email);
+
+              if (subscribed) {
+                console.log("User auto-subscribed to OneSignal");
+
+                // Save subscription status to profile
+                await supabase
+                  .from("profiles")
+                  .update({ push_notifications_enabled: true })
+                  .eq("id", user.id);
+              }
+            } catch (error) {
+              console.error("Auto-subscribe error:", error);
+            }
+          }, 3000);
+        } else if (status.subscribed) {
+          // User already subscribed, just set external ID
+          const OneSignal = (await import("react-onesignal")).default;
+          await OneSignal.setExternalUserId(user.id);
+          console.log("OneSignal external user ID updated");
+        }
+      }
+    };
+
+    setupOneSignal();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [user]);
 
   return (

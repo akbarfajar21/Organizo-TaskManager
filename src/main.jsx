@@ -14,6 +14,18 @@ import { ChatProvider } from "./context/ChatContext";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Import OneSignal initialization
+import { initializeOneSignal } from "./lib/onesignal";
+
+// Initialize OneSignal
+initializeOneSignal()
+  .then(() => {
+    console.log("OneSignal initialized successfully");
+  })
+  .catch((error) => {
+    console.error("OneSignal initialization failed:", error);
+  });
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ThemeProvider>
@@ -32,5 +44,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
         </ProfileProvider>
       </AuthProvider>
     </ThemeProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
