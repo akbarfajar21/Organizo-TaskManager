@@ -3,6 +3,7 @@ import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useNotificationPermission } from "../hooks/useNotificationPermission";
 import { useIOSPushNotification } from "../hooks/useIOSPushNotification";
+import toast, { Toaster } from "react-hot-toast";
 import {
   Bell,
   AlertCircle,
@@ -13,6 +14,7 @@ import {
   BellRing,
   BellOff,
   Smartphone,
+  X,
 } from "lucide-react";
 
 export default function Notifications() {
@@ -22,8 +24,36 @@ export default function Notifications() {
   const [filter, setFilter] = useState("all");
   const { permission, isSupported, requestPermission, isGranted } =
     useNotificationPermission();
-  const { isIOS, subscribeToPush, subscription } = useIOSPushNotification();
+  const { isIOS, subscribeToPush } = useIOSPushNotification();
   const [showPermissionBanner, setShowPermissionBanner] = useState(false);
+
+  // Function untuk play sound notification
+  const playNotificationSound = () => {
+    try {
+      const audioContext = new (
+        window.AudioContext || window.webkitAudioContext
+      )();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 800;
+      oscillator.type = "sine";
+
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.5,
+      );
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (err) {
+      console.log("Sound play failed:", err);
+    }
+  };
 
   /* ================= FETCH NOTIFICATIONS ================= */
   const fetchNotifications = async () => {
@@ -79,8 +109,58 @@ export default function Notifications() {
           if (payload.eventType === "INSERT") {
             const notif = payload.new;
 
-            // Cek permission dan service worker
-            if (isGranted && "serviceWorker" in navigator) {
+            // Play sound untuk semua platform
+            playNotificationSound();
+
+            // Show toast notification (works on all platforms including iOS)
+            toast.custom(
+              (t) => (
+                <div
+                  className={`${
+                    t.visible ? "animate-enter" : "animate-leave"
+                  } max-w-md w-full bg-white dark:bg-gray-800 shadow-xl rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 overflow-hidden`}
+                  onClick={() => {
+                    toast.dismiss(t.id);
+                  }}
+                >
+                  <div className="flex-1 w-0 p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0 pt-0.5">
+                        <div className="w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center">
+                          <Bell className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                          {notif.title}
+                        </p>
+                        <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">
+                          {notif.message}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex border-l border-gray-200 dark:border-gray-700">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toast.dismiss(t.id);
+                      }}
+                      className="w-full border border-transparent rounded-none rounded-r-xl p-4 flex items-center justify-center text-sm font-medium text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none transition-colors"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                </div>
+              ),
+              {
+                duration: 5000,
+                position: "top-right",
+              },
+            );
+
+            // Desktop/Android: Service Worker Notification
+            if (isGranted && "serviceWorker" in navigator && !isIOS) {
               try {
                 const registration = await navigator.serviceWorker.ready;
 
@@ -95,7 +175,6 @@ export default function Notifications() {
                   },
                   vibrate: [200, 100, 200],
                   requireInteraction: false,
-                  // iOS specific
                   silent: false,
                 });
 
@@ -104,13 +183,25 @@ export default function Notifications() {
                 console.error("Error showing notification:", error);
               }
             }
+            // iOS: Local Notification (only works when app is open)
+            else if (isIOS && Notification.permission === "granted") {
+              try {
+                new Notification(notif.title, {
+                  body: notif.message,
+                  icon: "/logo.png",
+                  tag: `notif-${notif.id}`,
+                });
+              } catch (error) {
+                console.error("iOS notification error:", error);
+              }
+            }
           }
         },
       )
       .subscribe();
 
     return () => supabase.removeChannel(channel);
-  }, [user?.id, isGranted]);
+  }, [user?.id, isGranted, isIOS]);
 
   /* ================= REQUEST NOTIFICATION PERMISSION ================= */
   const handleEnableNotifications = async () => {
@@ -124,8 +215,6 @@ export default function Notifications() {
         const sub = await subscribeToPush();
         if (sub) {
           console.log("iOS Push subscription created:", sub);
-          // TODO: Simpan subscription ke database
-          // await saveSubscriptionToDatabase(sub);
         }
       }
 
@@ -259,6 +348,14 @@ export default function Notifications() {
 
   return (
     <div className="min-h-screen p-3 sm:p-4 lg:p-6 bg-gray-50 dark:bg-gray-900">
+      {/* Toast Container */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          className: "dark:bg-gray-800 dark:text-white",
+        }}
+      />
+
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
         {/* Permission Banner */}
         {showPermissionBanner && (
@@ -311,8 +408,9 @@ export default function Notifications() {
               />
               <div className="flex-1 min-w-0">
                 <p className="text-xs sm:text-sm text-blue-900 dark:text-blue-100">
-                  <strong>iOS Note:</strong> Notifikasi akan muncul saat app
-                  tidak aktif. Pastikan PWA sudah terinstall di home screen.
+                  <strong>iOS Note:</strong> Notifikasi akan muncul sebagai
+                  toast dan badge saat app terbuka. Install PWA ke home screen
+                  untuk pengalaman terbaik.
                 </p>
               </div>
             </div>
@@ -336,7 +434,7 @@ export default function Notifications() {
               )}
               <div>
                 <p className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  Status Notifikasi Push {isIOS && "(iOS)"}
+                  Status Notifikasi {isIOS && "(iOS)"}
                 </p>
                 <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                   {isGranted
@@ -357,6 +455,9 @@ export default function Notifications() {
             )}
           </div>
         )}
+
+        {/* Rest of the component... (Header, Filters, Notifications List) */}
+        {/* ... (keep existing code) ... */}
 
         {/* Header - Responsive */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
@@ -453,6 +554,7 @@ export default function Notifications() {
   );
 }
 
+// FilterTab dan NotificationCard tetap sama...
 function FilterTab({ active, onClick, label, count }) {
   return (
     <button
@@ -493,14 +595,12 @@ function NotificationCard({ notification, onMarkAsRead, onDelete, getStyle }) {
       }`}
     >
       <div className="p-3 sm:p-4 flex items-start gap-2 sm:gap-3">
-        {/* Icon - Responsive */}
         <div
           className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg ${style.iconBg} flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform`}
         >
           <Icon className={style.iconColor} size={14} />
         </div>
 
-        {/* Content - Responsive */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 sm:gap-3 mb-1">
             <h3
