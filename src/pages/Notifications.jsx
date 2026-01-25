@@ -87,12 +87,30 @@ export default function Notifications() {
 
   // Check if should show permission banner
   useEffect(() => {
-    if (supported && !subscribed && permission === "default") {
+    if (!supported) {
+      setShowPermissionBanner(false);
+      return;
+    }
+
+    if (permission === "denied") {
+      setShowPermissionBanner(false);
+      return;
+    }
+
+    if (!subscribed) {
       setShowPermissionBanner(true);
     } else {
       setShowPermissionBanner(false);
     }
   }, [supported, subscribed, permission]);
+
+  useEffect(() => {
+    if (window.OneSignal && user?.id) {
+      window.OneSignal.push(() => {
+        window.OneSignal.setExternalUserId(user.id);
+      });
+    }
+  }, [user?.id]);
 
   /* ================= REALTIME SUBSCRIPTION ================= */
   useEffect(() => {
@@ -174,21 +192,22 @@ export default function Notifications() {
     try {
       const success = await enableNotifications();
 
-      if (success) {
-        toast.success("Notifikasi berhasil diaktifkan!");
-        setShowPermissionBanner(false);
-
-        // Update profile
-        await supabase
-          .from("profiles")
-          .update({ push_notifications_enabled: true })
-          .eq("id", user.id);
-      } else {
-        toast.error("Gagal mengaktifkan notifikasi");
+      if (!success) {
+        toast.error("Notifikasi tidak diizinkan");
+        return;
       }
+
+      toast.success("Notifikasi berhasil diaktifkan!");
+      setShowPermissionBanner(false);
+
+      // simpan ke database (opsional tapi bagus)
+      await supabase
+        .from("profiles")
+        .update({ push_notifications_enabled: true })
+        .eq("id", user.id);
     } catch (error) {
-      console.error("Error enabling notifications:", error);
-      toast.error("Terjadi kesalahan");
+      console.error(error);
+      toast.error("Gagal mengaktifkan notifikasi");
     }
   };
 
@@ -379,6 +398,12 @@ export default function Notifications() {
               >
                 Aktifkan
               </button>
+            )}
+            {subscribed && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
+                Notifikasi aktif. Kamu akan menerima pemberitahuan walau
+                aplikasi ditutup.
+              </div>
             )}
             {subscribed && (
               <button
