@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
-import OneSignal from "react-onesignal";
 import {
   Bell,
   AlertCircle,
@@ -59,8 +58,6 @@ export default function Notifications() {
           fetchNotifications();
 
           // Cek jika event adalah INSERT (notifikasi baru)
-          // OneSignal akan secara otomatis menampilkan push notification
-          // di latar belakang. Kode ini hanya untuk refresh daftar UI.
           if (payload.eventType === "INSERT") {
             const notif = payload.new;
             console.log("Notifikasi baru masuk di frontend:", notif.title);
@@ -211,11 +208,7 @@ export default function Notifications() {
               </div>
               <button
                 onClick={() => {
-                  if (OneSignal.initialized) {
-                    OneSignal.Slidedown.promptPush();
-                  } else {
-                    Notification.requestPermission();
-                  }
+                  Notification.requestPermission();
                 }}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto text-center cursor-pointer"
               >

@@ -21,14 +21,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <AuthProvider>
         <ProfileProvider>
           <SidebarProvider>
-            <ChatProvider>
-              <ToastProvider>
+            <ToastProvider>
+              <ChatProvider>
                 <BrowserRouter>
                   <App />
                   <ToastContainer />
                 </BrowserRouter>
-              </ToastProvider>
-            </ChatProvider>
+              </ChatProvider>
+            </ToastProvider>
           </SidebarProvider>
         </ProfileProvider>
       </AuthProvider>

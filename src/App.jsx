@@ -20,54 +20,10 @@ import HelpPage from "./pages/HelpPage";
 import ChatPage from "./pages/ChatPage";
 import History from "./pages/History";
 import { useAuth } from "./context/AuthContext";
-import OneSignal from "react-onesignal";
 import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   const { user } = useAuth();
-
-  useEffect(() => {
-    const initOneSignal = async () => {
-      const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
-      // Gunakan pengecekan .initialized agar tidak dobel-init di React Strict Mode
-      if (appId && !OneSignal.initialized) {
-        try {
-          await OneSignal.init({
-            appId: appId,
-            allowLocalhostAsSecureOrigin: true,
-            notifyButton: {
-              enable: false,
-            },
-          });
-          if (user?.id) {
-            await OneSignal.login(user.id);
-          }
-        } catch (err) {
-          // Diamkan saja jika error karena masalah 'Vercel domain vs Localhost'
-          if (
-            err &&
-            err.message &&
-            typeof err.message === "string" &&
-            !err.message.includes("Can only be used on")
-          ) {
-            console.warn("OneSignal (Dev Warning):", err.message);
-          }
-        }
-      }
-    };
-
-    initOneSignal();
-  }, []);
-
-  useEffect(() => {
-    if (import.meta.env.VITE_ONESIGNAL_APP_ID && OneSignal.initialized) {
-      if (user?.id) {
-        OneSignal.login(user.id).catch(() => {}); // Suppress dev mode errors
-      } else {
-        OneSignal.logout().catch(() => {});
-      }
-    }
-  }, [user]);
 
   return (
     <>

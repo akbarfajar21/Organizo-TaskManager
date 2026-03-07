@@ -516,13 +516,6 @@ export default function ChatPage() {
       return;
     }
 
-    // ✅ BARU: Kirim push notification ke penerima
-    const recipientUserId = selectedUser.id;
-    const senderName =
-      user.user_metadata?.full_name || user.email || "Seseorang";
-
-    await sendPushNotification(recipientUserId, senderName, messageContent);
-
     setInput("");
   };
 
@@ -733,40 +726,6 @@ export default function ChatPage() {
       window.removeEventListener("resize", handleResize);
     };
   }, [showChatRoom]);
-
-  const sendPushNotification = async (
-    recipientUserId,
-    senderName,
-    messageText,
-  ) => {
-    try {
-      const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
-      const restApiKey = import.meta.env.VITE_ONESIGNAL_REST_API_KEY;
-
-      if (!appId || !restApiKey) {
-        console.warn("OneSignal API keys are missing in .env");
-        return;
-      }
-
-      await fetch("https://onesignal.com/api/v1/notifications", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Basic ${restApiKey}`,
-        },
-        body: JSON.stringify({
-          app_id: appId,
-          include_external_user_ids: [recipientUserId],
-          channel_for_external_user_ids: "push",
-          headings: { en: `Pesan baru dari ${senderName}` },
-          contents: { en: messageText.substring(0, 50) },
-          url: window.location.origin + "/app/chat", // Arahkan ke halaman chat saat notif diklik
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to send push notification:", error);
-    }
-  };
 
   return (
     <div

@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "./AuthContext";
+import { useToast } from "./ToastContext";
 
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [totalUnreadMessages, setTotalUnreadMessages] = useState(0);
   const fetchTimeoutRef = useRef(null);
 
@@ -76,6 +78,13 @@ export const ChatProvider = ({ children }) => {
     fetchTotalUnread();
   }, [user?.id]);
 
+  // Request Native Notification Permission on mount
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
   useEffect(() => {
     if (!user?.id) return;
 
@@ -91,8 +100,53 @@ export const ChatProvider = ({ children }) => {
         (payload) => {
           if (payload.new.sender_id !== user.id) {
             debouncedFetchTotalUnread();
+
+            // Handle Notifications
+            const triggerNotification = async () => {
+              try {
+                const { data: sender } = await supabase
+                  .from("profiles")
+                  .select("full_name, avatar_url")
+                  .eq("id", payload.new.sender_id)
+                  .single();
+
+                const senderName = sender?.full_name || "Seseorang";
+                const avatar = sender?.avatar_url || "/default-avatar.png";
+
+                // 1. Toast in-app notification (only show if not already on the chat page)
+                if (!window.location.pathname.includes("/app/chat")) {
+                  showToast({
+                    type: "info",
+                    message: `Pesan baru dari ${senderName}`,
+                  });
+                }
+
+                // 2. Native System Notification (if tab is hidden/minimized)
+                if (
+                  document.visibilityState === "hidden" &&
+                  "Notification" in window &&
+                  Notification.permission === "granted"
+                ) {
+                  const notif = new Notification("Organizo", {
+                    body: `Pesan baru dari ${senderName}`,
+                    icon: avatar,
+                    tag: "chat-message",
+                  });
+
+                  notif.onclick = () => {
+                    window.focus();
+                    window.location.href = "/app/chat";
+                    notif.close();
+                  };
+                }
+              } catch (error) {
+                console.error("Error triggering notification:", error);
+              }
+            };
+
+            triggerNotification();
           }
-        }
+        },
       )
       .subscribe();
 
