@@ -14,17 +14,20 @@ export default defineConfig({
         start_url: "/app",
         display: "standalone",
         background_color: "#ffffff",
+        theme_color: "#ffffff",
         scope: "/", // Penting untuk deep linking
         icons: [
           {
             src: "/logo.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any maskable",
           },
           {
             src: "/logo.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any maskable",
           },
         ],
         // Tambahkan protocol handler untuk deep linking
