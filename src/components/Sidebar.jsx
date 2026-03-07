@@ -23,6 +23,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useSidebar } from "../context/SidebarContext";
 import { useChat } from "../context/ChatContext";
+import Swal from "sweetalert2";
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -37,16 +38,24 @@ export default function Sidebar() {
 
   /* ================= PWA INSTALL STATE ================= */
   const [deferredPrompt, setDeferredPrompt] = useState(null);
-  const [isInstallable, setIsInstallable] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
+    // Cek apakah aplikasi berjalan dalam mode terinstall (standalone)
+    const checkStandalone = () => {
+      return (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone ||
+        document.referrer.includes("android-app://")
+      );
+    };
+    setIsStandalone(checkStandalone());
+
     const handleBeforeInstallPrompt = (e) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e);
-      // Update UI notify the user they can install the PWA
-      setIsInstallable(true);
     };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
@@ -60,14 +69,37 @@ export default function Sidebar() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    // Show the install prompt
-    deferredPrompt.prompt();
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    // We've used the prompt, and can't use it again, throw it away
-    setDeferredPrompt(null);
-    setIsInstallable(false);
+    if (deferredPrompt) {
+      // Show the install prompt
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === "accepted") {
+        setDeferredPrompt(null);
+      }
+      return;
+    }
+
+    // Fallback jika prompt native tidak tersedia (misal di iOS Safari)
+    const isIOS =
+      /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if (isIOS) {
+      Swal.fire({
+        title: "Install di iOS",
+        html: "Ketuk tombol <strong>Bagikan (Share)</strong> di menu bawah browser Anda, lalu pilih <strong>'Tambah ke Layar Utama' (Add to Home Screen)</strong>.",
+        icon: "info",
+        confirmButtonColor: "#10B981",
+        confirmButtonText: "Mengerti",
+      });
+    } else {
+      Swal.fire({
+        title: "Install Aplikasi",
+        html: "Pemasangan otomatis belum siap. Silakan ketuk <strong>Menu (⋮)</strong> di sudut atas browser Anda, lalu pilih <strong>'Install App' / 'Tambahkan ke Layar Utama'</strong>.",
+        icon: "info",
+        confirmButtonColor: "#10B981",
+        confirmButtonText: "Mengerti",
+      });
+    }
   };
 
   /* ================= FETCH FUNCTIONS ================= */
@@ -322,7 +354,7 @@ export default function Sidebar() {
             />
 
             {/* PWA INSTALL BUTTON */}
-            {isInstallable && (
+            {!isStandalone && (
               <button
                 onClick={handleInstallClick}
                 className={`w-full flex items-center ${
