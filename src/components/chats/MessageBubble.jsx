@@ -18,7 +18,6 @@ export default function MessageBubble({
   setOpenDropdown,
   handleDeleteMessage,
   formatTime,
-  dropdownRef,
 }) {
   const renderTaskContent = (task) => (
     <div className="space-y-1">
@@ -136,21 +135,16 @@ export default function MessageBubble({
         isOwnMessage ? "justify-end" : "justify-start"
       }`}
     >
-      <div
-        className={`
-          group max-w-[80%] sm:max-w-[70%] md:max-w-[60%] lg:max-w-[55%]
-        `}
-      >
+      <div className={`group max-w-[85%] sm:max-w-[75%] md:max-w-[65%]`}>
         {/* Bubble Pesan */}
         <div
           className={`
-            px-3 py-2 rounded-lg shadow-sm flex flex-col
+            px-4 py-2.5 rounded-2xl flex flex-col
             ${
               isOwnMessage
-                ? "bg-yellow-400 text-gray-900 rounded-br-none"
-                : "bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 rounded-bl-none"
+                ? "bg-yellow-400 text-white rounded-tr-sm"
+                : "bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-800 text-gray-900 dark:text-gray-100 rounded-tl-sm shadow-sm"
             }
-            transition-colors duration-150
           `}
         >
           {/* Baris atas: Dropdown & Konten */}
@@ -166,7 +160,7 @@ export default function MessageBubble({
             </div>
             {/* Dropdown menu (hanya untuk pesan sendiri) */}
             {isOwnMessage && (
-              <div className="relative">
+              <div className="relative" data-dropdown="true">
                 <button
                   onClick={() =>
                     setOpenDropdown(openDropdown === msg.id ? null : msg.id)
@@ -181,10 +175,7 @@ export default function MessageBubble({
                   />
                 </button>
                 {openDropdown === msg.id && (
-                  <div
-                    ref={dropdownRef}
-                    className="absolute right-0 top-7 bg-white dark:bg-gray-900 rounded-md shadow-md border border-gray-200 dark:border-gray-700 z-20 min-w-[130px]"
-                  >
+                  <div className="absolute right-0 top-7 bg-white dark:bg-gray-900 rounded-md shadow-md border border-gray-200 dark:border-gray-700 z-20 min-w-[130px]">
                     <button
                       onClick={() => {
                         handleDeleteMessage(msg.id);
@@ -201,8 +192,14 @@ export default function MessageBubble({
               </div>
             )}
           </div>
-          {/* Waktu kirim (di bawah konten, rata kanan) */}
-          <div className="text-[9px] text-gray-700 dark:text-gray-400 font-semibold select-none text-right mt-1">
+          {/* Waktu kirim */}
+          <div
+            className={`text-[10px] font-medium mt-1 select-none flex ${
+              isOwnMessage
+                ? "text-yellow-100 justify-end"
+                : "text-gray-400 dark:text-gray-500 justify-end"
+            }`}
+          >
             {formatTime(msg.created_at)}
           </div>
         </div>

@@ -11,15 +11,14 @@ export default function ChatSidebar({
   openChatDropdown,
   setOpenChatDropdown,
   handleDeleteChat,
-  chatDropdownRef,
   isLoadingChats, // ✅ State loading untuk recent chats
   isLoadingSearch, // ✅ State loading untuk search
 }) {
   return (
-    <div className="w-full md:w-80 border-r border-gray-200/80 dark:border-gray-700/50 flex flex-col bg-gradient-to-b from-white to-gray-50/30 dark:from-gray-900 dark:to-gray-900/95 backdrop-blur-sm">
+    <div className="w-full md:w-80 h-full border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900">
       {/* ✅ Header Sidebar */}
-      <div className="p-5 border-b border-gray-200/80 dark:border-gray-700/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-4">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
           Pesan
         </h2>
 
@@ -27,14 +26,14 @@ export default function ChatSidebar({
         <div className="relative group">
           <Search
             size={18}
-            className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-500 transition-colors duration-200"
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-500 transition-colors duration-200"
           />
           <input
             type="text"
             placeholder="Cari User ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-gray-100/80 dark:bg-gray-800/80 text-gray-900 dark:text-gray-100 border border-gray-200/50 dark:border-gray-700/50 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-400/30 focus:bg-white dark:focus:bg-gray-800 transition-all duration-200 outline-none text-sm placeholder:text-gray-400 shadow-sm"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-none focus:ring-2 focus:ring-yellow-400 focus:bg-white dark:focus:bg-gray-800 transition-all outline-none text-sm placeholder:text-gray-500"
           />
         </div>
       </div>
@@ -56,17 +55,17 @@ export default function ChatSidebar({
             filteredUsers.map((u) => (
               <div
                 key={u.id}
-                className="flex items-center gap-3.5 p-4 cursor-pointer hover:bg-gradient-to-r hover:from-yellow-50 hover:to-yellow-100/50 dark:hover:from-yellow-900/20 dark:hover:to-yellow-900/10 transition-all duration-200 border-b border-gray-100/80 dark:border-gray-700/30 group"
+                className="flex items-center gap-3 p-3.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-100 dark:border-gray-800 group"
                 onClick={() => {
                   setSelectedUser(u);
                   setSearch("");
                 }}
               >
-                <div className="relative">
+                <div className="relative shrink-0">
                   <img
                     src={u.avatar_url || "/default-avatar.png"}
                     alt={u.full_name}
-                    className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-200/80 dark:ring-gray-700/80 group-hover:ring-yellow-400/50 transition-all duration-200 shadow-sm"
+                    className="w-10 h-10 rounded-full object-cover"
                   />
                 </div>
                 <div className="flex flex-col flex-1 min-w-0">
@@ -136,53 +135,55 @@ export default function ChatSidebar({
             return (
               <div
                 key={chat.chat_id}
-                className={`
-                  flex items-center gap-3.5 p-4 cursor-pointer transition-all duration-200 relative group
+                className={`flex items-center gap-3 p-3 lg:p-4 cursor-pointer transition-colors relative group
                   ${
                     isSelected
-                      ? "bg-gradient-to-r from-yellow-50 to-yellow-100/50 dark:from-yellow-900/30 dark:to-yellow-900/20 border-l-[3px] border-yellow-500 shadow-sm"
-                      : "hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100/30 dark:hover:from-gray-800/50 dark:hover:to-gray-800/30 border-l-[3px] border-transparent hover:border-gray-300 dark:hover:border-gray-600"
-                  }
-                `}
+                      ? "bg-yellow-50 dark:bg-yellow-900/20"
+                      : "hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                  }`}
                 onClick={() => setSelectedUser(chat)}
               >
                 {/* Avatar */}
-                <div className="relative flex-shrink-0">
+                <div className="relative shrink-0">
                   <img
                     src={chat.avatar_url || "/default-avatar.png"}
                     alt={chat.full_name}
-                    className={`w-13 h-13 rounded-full object-cover ring-2 transition-all duration-200 shadow-md ${
-                      isSelected
-                        ? "ring-yellow-400/60 dark:ring-yellow-500/60"
-                        : "ring-gray-200/80 dark:ring-gray-700/80 group-hover:ring-gray-300 dark:group-hover:ring-gray-600"
-                    }`}
+                    className="w-10 h-10 lg:w-12 lg:h-12 rounded-full object-cover"
                   />
+                  {isSelected && (
+                    <div className="absolute inset-0 rounded-full border-2 border-yellow-400 pointer-events-none"></div>
+                  )}
                 </div>
 
                 {/* Info Chat */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1.5">
+                <div className="flex-1 min-w-0 pr-6">
+                  <div className="flex items-center justify-between mb-0.5">
                     <span
                       className={`font-semibold truncate text-sm transition-colors ${
                         isSelected
-                          ? "text-gray-900 dark:text-gray-100"
-                          : "text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-gray-100"
+                          ? "text-gray-900 dark:text-white"
+                          : "text-gray-800 dark:text-gray-200 group-hover:text-gray-900 dark:group-hover:text-white"
                       }`}
                     >
                       {chat.full_name}
                     </span>
                     {unreadCount > 0 && (
-                      <span className="flex items-center justify-center min-w-[22px] h-[22px] px-2 bg-gradient-to-br from-yellow-400 to-yellow-500 text-white text-xs font-bold rounded-full shadow-md animate-pulse">
+                      <span className="flex-shrink-0 flex items-center justify-center min-w-[20px] h-[20px] px-1.5 bg-yellow-500 text-white text-[10px] font-bold rounded-full ml-2">
                         {unreadCount > 99 ? "99+" : unreadCount}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <p
+                    className={`text-xs truncate ${unreadCount > 0 ? "font-medium text-gray-800 dark:text-gray-200" : "text-gray-500"}`}
+                  >
                     Tap untuk membuka chat
                   </p>
                 </div>
 
-                <div className="relative flex-shrink-0" ref={chatDropdownRef}>
+                <div
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  data-dropdown="true"
+                >
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -190,22 +191,22 @@ export default function ChatSidebar({
                         openChatDropdown === chat.chat_id ? null : chat.chat_id,
                       );
                     }}
-                    className="p-2 hover:bg-gray-200/80 dark:hover:bg-gray-700/80 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+                    className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <MoreVertical
                       size={16}
-                      className="text-gray-600 dark:text-gray-400"
+                      className="text-gray-500 dark:text-gray-400"
                     />
                   </button>
 
                   {openChatDropdown === chat.chat_id && (
-                    <div className="absolute right-0 top-10 bg-white dark:bg-gray-800 border border-gray-200/80 dark:border-gray-700/80 rounded-xl shadow-xl z-10 min-w-[170px] overflow-hidden backdrop-blur-sm">
+                    <div className="absolute right-0 top-8 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 w-36 overflow-hidden">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteChat(chat.chat_id);
                         }}
-                        className="w-full flex items-center gap-2.5 px-4 py-3 text-left text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-all duration-200"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                       >
                         <Trash2 size={16} />
                         <span>Hapus Chat</span>

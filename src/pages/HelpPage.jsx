@@ -15,6 +15,8 @@ import {
   Smartphone,
   Calendar,
   Globe,
+  ListTodo,
+  History,
 } from "lucide-react";
 
 export default function HelpPage() {
@@ -30,82 +32,83 @@ export default function HelpPage() {
 
   const faqs = [
     {
-      question: "Bagaimana cara melakukan reset password?",
+      question:
+        "Apa perbedaan antara Tugas (My Tasks) dan Kegiatan (Activities)?",
       answer:
-        'Anda dapat menggunakan fitur "Lupa Password" pada halaman login. Sistem akan mengirimkan email berisi tautan untuk mereset password Anda. Pastikan email yang Anda gunakan masih aktif dan periksa folder spam jika email tidak masuk.',
-      icon: Lock,
+        "Tugas dirancang untuk pekerjaan dengan batas waktu (deadline) di mana Anda bisa mencentangnya jika sudah selesai. Sedangkan Kegiatan bersifat seperti agenda/kalender yang memiliki jam mulai (start time), jam selesai (end time), dan lokasi pelaksanaan.",
+      icon: ListTodo,
     },
     {
-      question: "Bisakah saya mengubah tema aplikasi?",
+      question: "Ke mana perginya tugas yang sudah saya selesaikan?",
       answer:
-        "Ya, Organizo menyediakan pilihan mode terang dan gelap. Anda dapat mengganti tema melalui tombol toggle di sidebar. Tema yang Anda pilih akan tersimpan secara otomatis dan diterapkan setiap kali Anda login.",
-      icon: Settings,
+        "Tugas dan Kegiatan yang telah Anda tandai sebagai 'Selesai' (ditandai centang hijau) akan otomatis dipindahkan ke halaman Riwayat (History). Anda dapat meninjau kembali seluruh pekerjaan Anda yang sudah tuntas di sana.",
+      icon: History,
     },
     {
-      question: "Apakah data saya aman di Organizo?",
+      question: "Bagaimana cara kerja batas waktu (deadline) tugas?",
       answer:
-        "Kami sangat menjaga keamanan data Anda dengan menerapkan enkripsi end-to-end dan protokol keamanan terkini. Data Anda disimpan di server yang aman dan hanya dapat diakses oleh Anda. Kami tidak akan membagikan data Anda kepada pihak ketiga tanpa izin Anda.",
-      icon: Lock,
+        "Setiap tugas memiliki tanggal dan jam batas waktu (default 23:59 jika jam tidak diisi). Jika waktu saat ini sudah melewati batas waktu dan tugas belum diselesaikan, tugas Anda akan masuk ke daftar merah 'Terlambat/Overdue' di Dashboard.",
+      icon: Clock,
     },
     {
-      question: "Bagaimana cara menambahkan tugas atau kegiatan baru?",
+      question: "Apa fungsi fitur Kategori?",
       answer:
-        'Anda dapat menambahkan tugas melalui menu "Tugas Saya" dengan mengklik tombol "Tambah Tugas". Untuk kegiatan, buka menu "Kegiatan" dan klik "Tambah Kegiatan". Isi formulir yang tersedia dengan detail yang diperlukan seperti judul, deskripsi, tanggal, dan kategori.',
+        "Kategori membantu Anda memberikan label warna dan mengelompokkan tugas atau kegiatan Anda berdasarkan konteks tertentu (misal: 'Pekerjaan', 'Pribadi', 'Kuliah'). Anda bebas membuat kategori sendiri melalui menu Kategori, yang kemudian dapat dipilih saat menambahkan Tugas/Kegiatan baru.",
       icon: CheckCircle,
     },
     {
-      question: "Bisakah saya menghapus atau mengedit tugas dan kegiatan?",
+      question: "Apakah saya bisa membagikan tugas saya ke orang lain?",
       answer:
-        "Ya, Anda dapat mengedit atau menghapus tugas dan kegiatan kapan saja. Pada setiap item tugas/kegiatan, terdapat tombol edit (ikon pensil) dan hapus (ikon tempat sampah). Klik tombol tersebut untuk melakukan perubahan atau penghapusan.",
-      icon: Settings,
+        "Ya! Organizo memiliki fitur Pesan (Chat). Anda dapat mengklik tombol lampiran (klip kertas) pada kolom chat untuk mengirim kartu Tugas atau Kegiatan yang Anda miliki kepada pengguna lain agar mereka dapat melihatnya.",
+      icon: MessageCircle,
     },
     {
-      question: "Apakah Organizo tersedia di mobile?",
+      question: "Kapan saya mendapatkan notifikasi peringatan?",
       answer:
-        "Ya, Organizo dirancang dengan responsive design sehingga dapat diakses dengan sempurna di berbagai perangkat termasuk smartphone dan tablet. Anda dapat mengakses Organizo melalui browser mobile Anda tanpa perlu mengunduh aplikasi tambahan.",
-      icon: Smartphone,
-    },
-    {
-      question: "Bagaimana cara menggunakan fitur kategori?",
-      answer:
-        'Kategori membantu Anda mengelompokkan tugas berdasarkan konteks seperti "Pekerjaan", "Pribadi", atau "Kuliah". Buat kategori di menu "Kategori", lalu saat menambahkan tugas baru, pilih kategori yang sesuai dari dropdown. Ini memudahkan Anda untuk memfilter dan fokus pada tugas tertentu.',
-      icon: CheckCircle,
-    },
-    {
-      question: "Bagaimana cara menggunakan fitur notifikasi?",
-      answer:
-        "Organizo akan mengirimkan notifikasi otomatis untuk mengingatkan Anda tentang tugas yang akan deadline atau sudah terlambat. Anda dapat melihat semua notifikasi di menu Notifikasi dan menandainya sebagai sudah dibaca atau menghapusnya.",
+        "Sistem Organizo akan secara otomatis mengirimkan Notifikasi kepada Anda setiap kali ada tugas yang baru saja melewati batas waktu (overdue), tugas/kegiatan baru yang baru Anda buat, atau pesan chat baru dari pengguna lain.",
       icon: AlertCircle,
+    },
+    {
+      question: "Bagaimana cara mengganti foto profil dan nama pengguna?",
+      answer:
+        "Anda dapat menuju menu Pengaturan melalui sidebar atau dengan mengklik foto/inisial Anda di sudut kanan atas layar (Header). Di sana Anda bisa mengubah nama lengkap, peran, serta mengunggah foto profil baru.",
+      icon: Settings,
+    },
+    {
+      question: "Bagaimana cara melakukan reset password atau mengubah email?",
+      answer:
+        "Semua tindakan keamanan akun seperti reset password atau perubahan data login dilakukan dari menu Keamanan di halaman Pengaturan. Organizo tidak menampilkan password lama Anda, namun Anda selalu dapat membuat sandi baru kapan saja.",
+      icon: Lock,
     },
   ];
 
   const guides = [
     {
-      title: "Mengelola Tugas",
+      title: "Mencatat Tugas & Kegiatan",
       description:
-        "Gunakan menu Tugas Saya untuk melihat, menambah, dan mengelola tugas harian Anda secara efisien.",
+        "Gunakan My Tasks untuk pekerjaan dengan deadline, dan Activities untuk jadwal harian berbasis waktu dan lokasi.",
       icon: CheckCircle,
       color: "blue",
     },
     {
-      title: "Mencatat Kegiatan",
+      title: "Kolaborasi di Pesan/Chat",
       description:
-        "Di bagian Kegiatan, catat dan pantau aktivitas penting yang Anda lakukan setiap hari.",
-      icon: Calendar,
+        "Berkomunikasi dengan pengguna lain secara real-time dan lampirkan kartu Tugas/Kegiatan langsung ke ruang obrolan.",
+      icon: MessageCircle,
       color: "green",
     },
     {
-      title: "Memantau Notifikasi",
+      title: "Pemantauan Khusus",
       description:
-        "Periksa Notifikasi secara rutin untuk mendapatkan update terbaru dan pengingat penting.",
-      icon: AlertCircle,
+        "Lihat tugas apa saja yang terlambat dan pantau ringkasan produktivitas harian Anda langsung dari Dashboard.",
+      icon: Calendar,
       color: "yellow",
     },
     {
-      title: "Mengatur Preferensi",
+      title: "Rekam Jejak Tuntas",
       description:
-        "Atur preferensi aplikasi dan informasi akun Anda melalui halaman Pengaturan.",
-      icon: Settings,
+        "Setiap hal yang telah Anda selesaikan tidak hilang. Semuanya direkam dan diarsipkan rapi di menu Riwayat.",
+      icon: History,
       color: "purple",
     },
   ];

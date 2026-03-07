@@ -10,6 +10,7 @@ import ChatHeader from "../components/chats/ChatHeader";
 import MessageList from "../components/chats/MessageList";
 import ChatInput from "../components/chats/ChatInput";
 import TaskActivityModal from "../components/chats/TaskActivityModal";
+import UserProfileModal from "../components/chats/UserProfileModal";
 import Swal from "sweetalert2";
 
 export default function ChatPage() {
@@ -37,6 +38,9 @@ export default function ChatPage() {
   const [tasks, setTasks] = useState([]);
   const [activities, setActivities] = useState([]);
 
+  // Modal profil user
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   // Dropdown menu untuk setiap pesan
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -44,19 +48,13 @@ export default function ChatPage() {
   const [openChatDropdown, setOpenChatDropdown] = useState(null);
 
   const messagesEndRef = useRef(null);
-  const dropdownRef = useRef(null);
-  const chatDropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      // Check if click originates from inside any dropdown container
+      if (!event.target.closest('[data-dropdown="true"]')) {
         setOpenDropdown(null);
-      }
-      if (
-        chatDropdownRef.current &&
-        !chatDropdownRef.current.contains(event.target)
-      ) {
         setOpenChatDropdown(null);
       }
     };
@@ -177,10 +175,12 @@ export default function ChatPage() {
       .map((c) => (c.user1_id === user.id ? c.user2_id : c.user1_id))
       .filter((v, i, a) => a.indexOf(v) === i);
 
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profileError } = await supabase
       .from("profiles")
-      .select("id,full_name,avatar_url")
+      .select("id,full_name,avatar_url,user_id")
       .in("id", userIds);
+
+    const safeProfiles = profiles || [];
 
     const counts = {};
     let totalUnread = 0;
@@ -214,7 +214,7 @@ export default function ChatPage() {
 
     const recent = chatsWithRecentMessages.map((c) => {
       const otherUser =
-        profiles.find(
+        safeProfiles.find(
           (p) => p.id === (c.user1_id === user.id ? c.user2_id : c.user1_id),
         ) || {};
       return {
@@ -607,13 +607,13 @@ export default function ChatPage() {
     setShowModal(true);
   };
 
-  // ✅ MODIFIKASI: Handle select user untuk mobile
+  // ✅ Handle select user untuk mobile
   const handleSelectUser = (u) => {
     setSelectedUser(u);
     setShowChatRoom(true); // Tampilkan chat room di mobile
   };
 
-  // ✅ TAMBAHKAN: Handle back to sidebar di mobile
+  // ✅ Handle back to sidebar di mobile
   const handleBackToSidebar = () => {
     setShowChatRoom(false);
     setSelectedUser(null);
@@ -705,9 +705,9 @@ export default function ChatPage() {
 
   return (
     <div
-      className={`flex ${
+      className={`flex w-full ${
         showChatRoom
-          ? "h-screen md:h-[calc(100vh-64px)]"
+          ? "h-[100dvh] md:h-[calc(100vh-64px)] fixed md:relative top-0 left-0 z-50 md:z-auto"
           : "h-[calc(100vh-64px)]"
       } bg-white dark:bg-gray-900 overflow-hidden`}
     >
@@ -718,6 +718,13 @@ export default function ChatPage() {
         activities={activities}
         sendMessage={sendMessage}
       />
+
+      {showProfileModal && selectedUser && (
+        <UserProfileModal
+          user={selectedUser}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
 
       <div
         className={`
@@ -737,7 +744,6 @@ export default function ChatPage() {
           openChatDropdown={openChatDropdown}
           setOpenChatDropdown={setOpenChatDropdown}
           handleDeleteChat={handleDeleteChat}
-          chatDropdownRef={chatDropdownRef}
           isLoadingChats={isLoadingChats}
           isLoadingSearch={isLoadingSearch}
         />
@@ -746,20 +752,19 @@ export default function ChatPage() {
       <div
         className={`
           ${showChatRoom ? "flex" : "hidden md:flex"} 
-          flex-1 
-          w-full
-          h-full
-          relative
+          flex-col flex-1 w-full h-full relative bg-gray-50 dark:bg-gray-900
         `}
       >
-        <div className="absolute top-0 left-0 right-0 z-50">
+        <div className="z-20 w-full shrink-0">
           <ChatHeader
             selectedUser={selectedUser}
             onBack={handleBackToSidebar}
+            onProfileClick={() => setShowProfileModal(true)}
+            onClearChat={() => handleDeleteChat(chatId)}
           />
         </div>
 
-        <div className="absolute top-14 md:top-16 bottom-16 md:bottom-20 left-0 right-0 overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 overflow-y-auto w-full relative">
           <MessageList
             messages={messages}
             userId={user.id}
@@ -768,11 +773,10 @@ export default function ChatPage() {
             handleDeleteMessage={handleDeleteMessage}
             formatTime={formatTime}
             messagesEndRef={messagesEndRef}
-            dropdownRef={dropdownRef}
           />
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 z-50">
+        <div className="z-20 w-full shrink-0">
           <ChatInput
             input={input}
             setInput={setInput}

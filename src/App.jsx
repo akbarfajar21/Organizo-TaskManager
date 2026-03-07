@@ -21,70 +21,88 @@ import ChatPage from "./pages/ChatPage";
 import History from "./pages/History";
 import { useAuth } from "./context/AuthContext";
 import OneSignal from "react-onesignal";
+import ScrollToTop from "./components/ScrollToTop";
 
 export default function App() {
   const { user } = useAuth();
 
   useEffect(() => {
-    const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
-    if (appId) {
-      OneSignal.init({
-        appId: appId,
-        allowLocalhostAsSecureOrigin: true,
-        notifyButton: {
-          enable: false,
-        },
-      })
-        .then(() => {
+    const initOneSignal = async () => {
+      const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+      // Gunakan pengecekan .initialized agar tidak dobel-init di React Strict Mode
+      if (appId && !OneSignal.initialized) {
+        try {
+          await OneSignal.init({
+            appId: appId,
+            allowLocalhostAsSecureOrigin: true,
+            notifyButton: {
+              enable: false,
+            },
+          });
           if (user?.id) {
-            OneSignal.login(user.id);
+            await OneSignal.login(user.id);
           }
-        })
-        .catch((err) => console.error("OneSignal init error:", err));
-    }
+        } catch (err) {
+          // Diamkan saja jika error karena masalah 'Vercel domain vs Localhost'
+          if (
+            err &&
+            err.message &&
+            typeof err.message === "string" &&
+            !err.message.includes("Can only be used on")
+          ) {
+            console.warn("OneSignal (Dev Warning):", err.message);
+          }
+        }
+      }
+    };
+
+    initOneSignal();
   }, []);
 
   useEffect(() => {
     if (import.meta.env.VITE_ONESIGNAL_APP_ID && OneSignal.initialized) {
       if (user?.id) {
-        OneSignal.login(user.id).catch(console.error);
+        OneSignal.login(user.id).catch(() => {}); // Suppress dev mode errors
       } else {
-        OneSignal.logout().catch(console.error);
+        OneSignal.logout().catch(() => {});
       }
     }
   }, [user]);
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/terms" element={<TermsOfService />} />
-      <Route path="/privacy" element={<PrivacyPolicy />} />
-      {/* Protected Routes */}
-      <Route
-        path="/app"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="tasks" element={<MyTasks />} />
-        <Route path="categories" element={<Categories />} />
-        <Route path="notifications" element={<Notifications />} />
-        <Route path="settings" element={<Settings />} />
-        <Route path="history" element={<History />} />
-        <Route path="activities" element={<Activities />} />
-        <Route path="chat" element={<ChatPage />} />
-        <Route path="help" element={<HelpPage />} />
-      </Route>
-      {/* 404 Redirect */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        {/* Protected Routes */}
+        <Route
+          path="/app"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="tasks" element={<MyTasks />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="notifications" element={<Notifications />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="history" element={<History />} />
+          <Route path="activities" element={<Activities />} />
+          <Route path="chat" element={<ChatPage />} />
+          <Route path="help" element={<HelpPage />} />
+        </Route>
+        {/* 404 Redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

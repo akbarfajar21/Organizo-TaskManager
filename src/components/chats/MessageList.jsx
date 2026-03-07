@@ -9,7 +9,6 @@ export default function MessageList({
   handleDeleteMessage,
   formatTime,
   messagesEndRef,
-  dropdownRef,
 }) {
   return (
     <div className="p-3 md:p-4 space-y-2 md:space-y-3 bg-gray-50 dark:bg-gray-900 min-h-full">
@@ -50,7 +49,6 @@ export default function MessageList({
               setOpenDropdown={setOpenDropdown}
               handleDeleteMessage={handleDeleteMessage}
               formatTime={formatTime}
-              dropdownRef={dropdownRef}
             />
           ))}
           <div ref={messagesEndRef} />

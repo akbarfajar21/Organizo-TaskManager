@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getLocalToday } from "../../utils/dateUtils";
 import { supabase } from "../../lib/supabase";
 import { useToast } from "../../context/ToastContext";
 import Swal from "sweetalert2";
@@ -80,7 +81,7 @@ export default function TaskModal({ task, onClose, onUpdate }) {
     });
   };
 
-  const isOverdue = task.due_date < new Date().toISOString().slice(0, 10);
+  const isOverdue = task.due_date < getLocalToday();
 
   return (
     <div

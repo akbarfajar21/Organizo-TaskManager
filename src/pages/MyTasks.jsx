@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocalToday } from "../utils/dateUtils";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import Swal from "sweetalert2";
@@ -31,7 +32,7 @@ export default function MyTasks() {
   const [categoryId, setCategoryId] = useState("");
   const [editTask, setEditTask] = useState(null);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getLocalToday();
   const now = new Date();
 
   // Fetch Tasks dan Categories
@@ -55,7 +56,7 @@ export default function MyTasks() {
   useEffect(() => {
     document.title = "Organizo - Tugas Saya";
   }, []);
-  
+
   const fetchCategories = async () => {
     const { data } = await supabase
       .from("categories")

@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { getLocalToday } from "../utils/dateUtils";
 
 const ToastContext = createContext();
 
@@ -13,7 +14,7 @@ export function ToastProvider({ children }) {
     oncePerDay = false,
   }) => {
     if (oncePerDay) {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = getLocalToday();
       const key = `toast-${type}-${today}`;
       if (localStorage.getItem(key)) return;
       localStorage.setItem(key, "shown");

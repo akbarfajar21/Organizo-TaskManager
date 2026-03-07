@@ -9,6 +9,7 @@ import {
   Tag,
 } from "lucide-react";
 import Card from "../../components/dashboard/Card";
+import { getLocalToday } from "../../utils/dateUtils";
 import { supabase } from "../../lib/supabase";
 
 const CalendarCard = ({ title }) => {
@@ -18,7 +19,7 @@ const CalendarCard = ({ title }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(null);
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalToday();
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -33,7 +34,7 @@ const CalendarCard = ({ title }) => {
       supabase
         .from("tasks")
         .select(
-          "id, title, description, due_date, due_time, is_done, category:categories(name)"
+          "id, title, description, due_date, due_time, is_done, category:categories(name)",
         )
         .eq("user_id", user.id)
         .gte("due_date", start)
@@ -41,7 +42,7 @@ const CalendarCard = ({ title }) => {
       supabase
         .from("activities")
         .select(
-          "id, title, description, activity_date, start_time, end_time, location, is_completed, category:categories(name)"
+          "id, title, description, activity_date, start_time, end_time, location, is_completed, category:categories(name)",
         )
         .eq("user_id", user.id)
         .gte("activity_date", start)
@@ -69,7 +70,7 @@ const CalendarCard = ({ title }) => {
           table: "tasks",
           filter: `user_id=eq.${user.id}`,
         },
-        fetchData
+        fetchData,
       )
       .subscribe();
 
@@ -83,7 +84,7 @@ const CalendarCard = ({ title }) => {
           table: "activities",
           filter: `user_id=eq.${user.id}`,
         },
-        fetchData
+        fetchData,
       )
       .subscribe();
 
@@ -163,7 +164,7 @@ const CalendarCard = ({ title }) => {
           const day = i + 1;
           const dateStr = `${year}-${String(month + 1).padStart(
             2,
-            "0"
+            "0",
           )}-${String(day).padStart(2, "0")}`;
 
           const dayTasks = tasksByDate[dateStr] || [];
@@ -180,8 +181,8 @@ const CalendarCard = ({ title }) => {
                   isToday
                     ? "border-2 border-yellow-500 text-yellow-700 dark:text-yellow-400 bg-white dark:bg-gray-900 z-10"
                     : isSelected
-                    ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 ring-2 ring-yellow-400"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                      ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 ring-2 ring-yellow-400"
+                      : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                 }`}
             >
               {day}

@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { getLocalToday } from "../utils/dateUtils";
 import {
   LayoutDashboard,
   CheckSquare,
@@ -15,6 +16,7 @@ import {
   MessageCircle,
   HelpCircle,
   History, // ⚡ TAMBAHKAN INI
+  Download,
 } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
@@ -32,6 +34,41 @@ export default function Sidebar() {
   const [notificationCount, setNotificationCount] = useState(0);
   const [activityCount, setActivityCount] = useState(0);
   const { totalUnreadMessages } = useChat();
+
+  /* ================= PWA INSTALL STATE ================= */
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      setDeferredPrompt(e);
+      // Update UI notify the user they can install the PWA
+      setIsInstallable(true);
+    };
+
+    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+
+    return () => {
+      window.removeEventListener(
+        "beforeinstallprompt",
+        handleBeforeInstallPrompt,
+      );
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    // Show the install prompt
+    deferredPrompt.prompt();
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    // We've used the prompt, and can't use it again, throw it away
+    setDeferredPrompt(null);
+    setIsInstallable(false);
+  };
 
   /* ================= FETCH FUNCTIONS ================= */
   const fetchTaskCount = async () => {
@@ -56,7 +93,7 @@ export default function Sidebar() {
 
   const fetchActivityCount = async () => {
     if (!user?.id) return;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getLocalToday();
     const { count, error } = await supabase
       .from("activities")
       .select("*", { count: "exact", head: true })
@@ -84,7 +121,7 @@ export default function Sidebar() {
           table: "tasks",
           filter: `user_id=eq.${user.id}`,
         },
-        fetchTaskCount
+        fetchTaskCount,
       )
       .subscribe();
     const channelNotifications = supabase
@@ -97,7 +134,7 @@ export default function Sidebar() {
           table: "notifications",
           filter: `user_id=eq.${user.id}`,
         },
-        fetchNotificationCount
+        fetchNotificationCount,
       )
       .subscribe();
     const channelActivities = supabase
@@ -110,7 +147,7 @@ export default function Sidebar() {
           table: "activities",
           filter: `user_id=eq.${user.id}`,
         },
-        fetchActivityCount
+        fetchActivityCount,
       )
       .subscribe();
 
@@ -283,6 +320,31 @@ export default function Sidebar() {
               isCollapsed={isCollapsed && window.innerWidth >= 1024}
               onClick={closeMobileMenu}
             />
+
+            {/* PWA INSTALL BUTTON */}
+            {isInstallable && (
+              <button
+                onClick={handleInstallClick}
+                className={`w-full flex items-center ${
+                  isCollapsed && window.innerWidth >= 1024
+                    ? "justify-center h-12"
+                    : "justify-between"
+                } px-3 py-2 mt-2 rounded-lg text-sm font-medium transition-all duration-200 ease-in-out group relative bg-gradient-to-r from-green-400 to-emerald-500 text-white shadow-md hover:scale-105`}
+              >
+                <div
+                  className={`flex items-center ${
+                    isCollapsed && window.innerWidth >= 1024 ? "" : "gap-3"
+                  }`}
+                >
+                  <Download size={20} />
+                  {(!isCollapsed || window.innerWidth < 1024) && (
+                    <span className="transition-opacity duration-300">
+                      Install App
+                    </span>
+                  )}
+                </div>
+              </button>
+            )}
           </nav>
         </div>
 

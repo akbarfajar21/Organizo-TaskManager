@@ -1,5 +1,6 @@
 Dashboard.jsx;
 import { useEffect, useState } from "react";
+import { getLocalToday, getLocalYesterday } from "../utils/dateUtils";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -33,8 +34,8 @@ export default function Dashboard() {
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isActivityModalOpen, setIsActivityModalOpen] = useState(false);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const today = getLocalToday();
+  const yesterday = getLocalYesterday();
 
   const fetchTodayActivities = async () => {
     if (!user) return;

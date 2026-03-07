@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocalToday } from "../utils/dateUtils";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
 import Swal from "sweetalert2";
@@ -309,7 +310,7 @@ export default function Activities() {
     }
   };
 
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = getLocalToday();
   const todayActivities = activities.filter(
     (a) => a.activity_date === todayStr,
   );
