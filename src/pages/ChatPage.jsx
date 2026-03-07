@@ -263,36 +263,59 @@ export default function ChatPage() {
       .on(
         "postgres_changes",
         {
-          event: "INSERT",
+          event: "*",
           schema: "public",
           table: "messages",
         },
         async (payload) => {
-          if (payload.new.sender_id !== user.id) {
-            setUnreadCounts((prev) => ({
-              ...prev,
-              [payload.new.chat_id]: (prev[payload.new.chat_id] || 0) + 1,
-            }));
+          if (payload.eventType === "INSERT") {
+            if (payload.new.sender_id !== user.id) {
+              setUnreadCounts((prev) => ({
+                ...prev,
+                [payload.new.chat_id]: (prev[payload.new.chat_id] || 0) + 1,
+              }));
 
-            setTotalUnreadMessages((prev) => prev + 1);
-          }
-
-          setRecentChats((prevChats) => {
-            const chatIndex = prevChats.findIndex(
-              (c) => c.chat_id === payload.new.chat_id,
-            );
-
-            if (chatIndex > 0) {
-              const updatedChats = [...prevChats];
-              const [chat] = updatedChats.splice(chatIndex, 1);
-              updatedChats.unshift(chat);
-              return updatedChats;
-            } else if (chatIndex === -1) {
-              fetchRecentChatsWithUnread();
+              setTotalUnreadMessages((prev) => prev + 1);
             }
 
-            return prevChats;
-          });
+            setRecentChats((prevChats) => {
+              const chatIndex = prevChats.findIndex(
+                (c) => c.chat_id === payload.new.chat_id,
+              );
+
+              if (chatIndex >= 0) {
+                const updatedChats = [...prevChats];
+                const [chat] = updatedChats.splice(chatIndex, 1);
+
+                chat.last_message = payload.new.content;
+                chat.last_message_type = payload.new.type;
+                chat.last_message_sender = payload.new.sender_id;
+                chat.last_message_read = payload.new.is_read;
+
+                updatedChats.unshift(chat);
+                return updatedChats;
+              } else {
+                fetchRecentChatsWithUnread();
+                return prevChats;
+              }
+            });
+          } else if (payload.eventType === "UPDATE") {
+            setRecentChats((prevChats) => {
+              const updatedChats = [...prevChats];
+              const chatIndex = updatedChats.findIndex(
+                (c) => c.chat_id === payload.new.chat_id,
+              );
+              if (chatIndex >= 0) {
+                updatedChats[chatIndex] = {
+                  ...updatedChats[chatIndex],
+                  last_message_read:
+                    payload.new.is_read ||
+                    updatedChats[chatIndex].last_message_read,
+                };
+              }
+              return updatedChats;
+            });
+          }
         },
       )
       .subscribe();
@@ -419,6 +442,22 @@ export default function ChatPage() {
                 fetchTotalUnread();
               }, 500);
             }
+          },
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "messages",
+            filter: `chat_id=eq.${currentChatId}`,
+          },
+          (payload) => {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === payload.new.id ? payload.new : msg,
+              ),
+            );
           },
         )
         .subscribe();
