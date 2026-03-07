@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { useAuth } from "../context/AuthContext";
+import OneSignal from "react-onesignal";
 import {
   Bell,
   AlertCircle,
@@ -58,22 +59,11 @@ export default function Notifications() {
           fetchNotifications();
 
           // Cek jika event adalah INSERT (notifikasi baru)
+          // OneSignal akan secara otomatis menampilkan push notification
+          // di latar belakang. Kode ini hanya untuk refresh daftar UI.
           if (payload.eventType === "INSERT") {
             const notif = payload.new;
-            // Tampilkan notifikasi push jika user sudah izinkan
-            if (
-              Notification.permission === "granted" &&
-              navigator.serviceWorker
-            ) {
-              navigator.serviceWorker.ready.then((registration) => {
-                registration.showNotification(notif.title, {
-                  body: notif.message,
-                  icon: "/logo.png", // pastikan file ada di public/
-                  tag: `notif-${notif.id}`,
-                  data: { url: "/app/notifications" }, // bisa diarahkan ke halaman notif
-                });
-              });
-            }
+            console.log("Notifikasi baru masuk di frontend:", notif.title);
           }
         },
       )
@@ -205,6 +195,35 @@ export default function Notifications() {
   return (
     <div className="min-h-screen p-3 sm:p-4 lg:p-6 bg-gray-50 dark:bg-gray-900">
       <div className="max-w-4xl mx-auto space-y-4 sm:space-y-5">
+        {/* Banner Aktifkan Notifikasi */}
+        {"Notification" in window &&
+          Notification.permission !== "granted" &&
+          Notification.permission !== "denied" && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+              <div>
+                <h3 className="font-bold text-sm sm:text-base text-blue-800 dark:text-blue-300">
+                  Aktifkan Notifikasi Latar Belakang
+                </h3>
+                <p className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 mt-0.5">
+                  Dapatkan pemberitahuan tugas & tenggat waktu seketika meskipun
+                  aplikasi tertutup.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  if (OneSignal.initialized) {
+                    OneSignal.Slidedown.promptPush();
+                  } else {
+                    Notification.requestPermission();
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-lg font-semibold text-sm transition-colors shadow-sm w-full sm:w-auto text-center cursor-pointer"
+              >
+                Aktifkan Notifikasi
+              </button>
+            </div>
+          )}
+
         {/* Header - Responsive */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex-1 min-w-0">

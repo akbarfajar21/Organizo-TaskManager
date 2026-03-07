@@ -19,8 +19,41 @@ import Activities from "./pages/Activities";
 import HelpPage from "./pages/HelpPage";
 import ChatPage from "./pages/ChatPage";
 import History from "./pages/History";
+import { useAuth } from "./context/AuthContext";
+import OneSignal from "react-onesignal";
 
 export default function App() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+    if (appId) {
+      OneSignal.init({
+        appId: appId,
+        allowLocalhostAsSecureOrigin: true,
+        notifyButton: {
+          enable: false,
+        },
+      })
+        .then(() => {
+          if (user?.id) {
+            OneSignal.login(user.id);
+          }
+        })
+        .catch((err) => console.error("OneSignal init error:", err));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (import.meta.env.VITE_ONESIGNAL_APP_ID && OneSignal.initialized) {
+      if (user?.id) {
+        OneSignal.login(user.id).catch(console.error);
+      } else {
+        OneSignal.logout().catch(console.error);
+      }
+    }
+  }, [user]);
+
   return (
     <Routes>
       {/* Public Routes */}
