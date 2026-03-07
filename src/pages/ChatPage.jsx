@@ -134,7 +134,7 @@ export default function ChatPage() {
 
     const { data: messagesData, error: msgError } = await supabase
       .from("messages")
-      .select("chat_id, created_at, is_read, sender_id")
+      .select("chat_id, created_at, is_read, sender_id, content, type")
       .in("chat_id", chatIds);
 
     if (msgError || !messagesData) {
@@ -212,23 +212,33 @@ export default function ChatPage() {
     setUnreadCounts(counts);
     setTotalUnreadMessages(totalUnread);
 
+    const times = {};
+    const lastMessages = {}; // Untuk menyimpan pesan terbaru per chat
+
+    messagesData.forEach((msg) => {
+      const msgTime = new Date(msg.created_at).getTime();
+      if (!times[msg.chat_id] || times[msg.chat_id] < msgTime) {
+        times[msg.chat_id] = msgTime;
+        lastMessages[msg.chat_id] = msg; // Simpan object pesan terbarunya
+      }
+    });
+
     const recent = chatsWithRecentMessages.map((c) => {
       const otherUser =
         safeProfiles.find(
           (p) => p.id === (c.user1_id === user.id ? c.user2_id : c.user1_id),
         ) || {};
+
+      const lastMsg = lastMessages[c.id];
+
       return {
         chat_id: c.id,
         ...otherUser,
+        last_message: lastMsg ? lastMsg.content : "",
+        last_message_type: lastMsg ? lastMsg.type : "text",
+        last_message_sender: lastMsg ? lastMsg.sender_id : null,
+        last_message_read: lastMsg ? lastMsg.is_read : false,
       };
-    });
-
-    const times = {};
-    messagesData.forEach((msg) => {
-      const msgTime = new Date(msg.created_at).getTime();
-      if (!times[msg.chat_id] || times[msg.chat_id] < msgTime) {
-        times[msg.chat_id] = msgTime;
-      }
     });
 
     const sortedRecent = recent.sort((a, b) => {
@@ -691,16 +701,32 @@ export default function ChatPage() {
     messageText,
   ) => {
     try {
-      await fetch("http://localhost:4000/api/send-chat-notification", {
+      const appId = import.meta.env.VITE_ONESIGNAL_APP_ID;
+      const restApiKey = import.meta.env.VITE_ONESIGNAL_REST_API_KEY;
+
+      if (!appId || !restApiKey) {
+        console.warn("OneSignal API keys are missing in .env");
+        return;
+      }
+
+      await fetch("https://onesignal.com/api/v1/notifications", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Basic ${restApiKey}`,
+        },
         body: JSON.stringify({
-          recipientUserId,
-          senderName,
-          messagePreview: messageText.substring(0, 50), // Potong jika terlalu panjang
+          app_id: appId,
+          include_external_user_ids: [recipientUserId],
+          channel_for_external_user_ids: "push",
+          headings: { en: `Pesan baru dari ${senderName}` },
+          contents: { en: messageText.substring(0, 50) },
+          url: window.location.origin + "/app/chat", // Arahkan ke halaman chat saat notif diklik
         }),
       });
-    } catch (error) {}
+    } catch (error) {
+      console.error("Failed to send push notification:", error);
+    }
   };
 
   return (

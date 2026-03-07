@@ -9,6 +9,7 @@ import {
   FolderOpen,
   CheckCircle2,
   Circle,
+  CheckCheck,
 } from "lucide-react";
 
 export default function MessageBubble({
@@ -192,15 +193,21 @@ export default function MessageBubble({
               </div>
             )}
           </div>
-          {/* Waktu kirim */}
+          {/* Waktu kirim & Read Receipt */}
           <div
-            className={`text-[10px] font-medium mt-1 select-none flex ${
+            className={`text-[10px] font-medium mt-1 select-none flex items-center gap-1 ${
               isOwnMessage
                 ? "text-yellow-100 justify-end"
                 : "text-gray-400 dark:text-gray-500 justify-end"
             }`}
           >
             {formatTime(msg.created_at)}
+            {isOwnMessage && (
+              <CheckCheck
+                size={14}
+                className={msg.is_read ? "text-blue-500" : "text-gray-400"}
+              />
+            )}
           </div>
         </div>
       </div>

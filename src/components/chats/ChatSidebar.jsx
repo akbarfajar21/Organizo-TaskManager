@@ -1,4 +1,12 @@
-import { MoreVertical, Trash2, Search, Loader } from "lucide-react";
+import {
+  MoreVertical,
+  Trash2,
+  Search,
+  Loader,
+  CheckCheck,
+  FileText,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ChatSidebar({
   search,
@@ -14,6 +22,7 @@ export default function ChatSidebar({
   isLoadingChats, // ✅ State loading untuk recent chats
   isLoadingSearch, // ✅ State loading untuk search
 }) {
+  const { user } = useAuth();
   return (
     <div className="w-full md:w-80 h-full border-r border-gray-200 dark:border-gray-800 flex flex-col bg-white dark:bg-gray-900">
       {/* ✅ Header Sidebar */}
@@ -173,11 +182,37 @@ export default function ChatSidebar({
                       </span>
                     )}
                   </div>
-                  <p
-                    className={`text-xs truncate ${unreadCount > 0 ? "font-medium text-gray-800 dark:text-gray-200" : "text-gray-500"}`}
-                  >
-                    Tap untuk membuka chat
-                  </p>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    {chat.last_message_sender === user?.id && (
+                      <CheckCheck
+                        size={14}
+                        className={`shrink-0 ${chat.last_message_read ? "text-blue-500" : "text-gray-400"}`}
+                      />
+                    )}
+                    <p
+                      className={`text-xs truncate ${
+                        unreadCount > 0
+                          ? "font-semibold text-gray-900 dark:text-gray-100"
+                          : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      {chat.last_message_type !== "text" ? (
+                        <span className="flex items-center gap-1 italic">
+                          <FileText size={12} />
+                          {chat.last_message_sender === user?.id
+                            ? "Anda mengirim lampiran"
+                            : "Mengirim lampiran"}
+                        </span>
+                      ) : (
+                        <span>
+                          {chat.last_message_sender === user?.id
+                            ? "Anda: "
+                            : ""}
+                          {chat.last_message || "Belum ada pesan"}
+                        </span>
+                      )}
+                    </p>
+                  </div>
                 </div>
 
                 <div
