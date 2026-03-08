@@ -25,7 +25,11 @@ ReactDOM.createRoot(document.getElementById("root")).render(
               <ChatProvider>
                 <BrowserRouter>
                   <App />
-                  <ToastContainer />
+                  <ToastContainer
+                    hideProgressBar={true}
+                    toastClassName="relative flex p-4 min-h-16 rounded-2xl justify-between overflow-hidden cursor-pointer bg-white/80 backdrop-blur-xl text-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-200/50 dark:bg-gray-900/80 dark:text-gray-100 dark:border-gray-700/50 mb-4 transition-all duration-300 ease-out"
+                    bodyClassName="text-sm font-semibold flex-1 self-center ml-2"
+                  />
                 </BrowserRouter>
               </ChatProvider>
             </ToastProvider>

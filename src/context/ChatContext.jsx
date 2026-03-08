@@ -113,13 +113,11 @@ export const ChatProvider = ({ children }) => {
                 const senderName = sender?.full_name || "Seseorang";
                 const avatar = sender?.avatar_url || "/default-avatar.png";
 
-                // 1. Toast in-app notification (only show if not already on the chat page)
-                if (!window.location.pathname.includes("/app/chat")) {
-                  showToast({
-                    type: "info",
-                    message: `Pesan baru dari ${senderName}`,
-                  });
-                }
+                // 1. Toast in-app notification (selalu muncul di mana saja)
+                showToast({
+                  type: "info",
+                  message: `Pesan baru dari ${senderName}`,
+                });
 
                 // 2. Native System Notification (if tab is hidden/minimized)
                 if (
