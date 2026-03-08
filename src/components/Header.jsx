@@ -65,6 +65,7 @@ export default function Header() {
     <header className="sticky top-0 z-30 h-14 sm:h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
       {/* Mobile Menu Button - Tampil hanya di mobile */}
       <button
+      
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         className="lg:hidden w-10 h-10 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-lg flex items-center justify-center hover:from-yellow-500 hover:to-amber-600 transition-all shadow-lg hover:shadow-xl active:scale-95"
         aria-label="Toggle mobile menu"
