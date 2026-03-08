@@ -57,7 +57,7 @@ export default function Header() {
 
   const getFormattedTime = (date) => {
     return `${String(date.getHours()).padStart(2, "0")}:${String(
-      date.getMinutes()
+      date.getMinutes(),
     ).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}`;
   };
 
@@ -137,7 +137,7 @@ export default function Header() {
             </p>
             <div className="flex items-center justify-end">
               <span className="text-xs font-mono text-gray-400 dark:text-gray-500">
-                ID: {user?.id?.slice(0, 6)}
+                ID: {profile?.user_id || "Loading..."}
               </span>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function Header() {
         {/* Avatar with Badge */}
         <div className="relative">
           <div
-            title={`${fullName}\n${user?.email}\nID: ${user?.id}`}
+            title={`${fullName}\n${user?.email}\nID: ${profile?.user_id || ""}`}
             className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex items-center justify-center ring-2 ring-yellow-400 ring-offset-2 dark:ring-offset-gray-900 group-hover:ring-yellow-500 group-hover:scale-110 transition-all shadow-md ${
               avatarUrl
                 ? "bg-transparent"
