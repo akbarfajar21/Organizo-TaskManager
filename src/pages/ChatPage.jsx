@@ -48,6 +48,12 @@ export default function ChatPage() {
   const [openChatDropdown, setOpenChatDropdown] = useState(null);
 
   const messagesEndRef = useRef(null);
+  const isInitialScroll = useRef(true);
+
+  // Typing indicator
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
+  const activeChannelRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -97,10 +103,10 @@ export default function ChatPage() {
   }, [user?.id, search]);
 
   // --- Fetch recent chats dan unread counts ---
-  const fetchRecentChatsWithUnread = async () => {
+  const fetchRecentChatsWithUnread = async (showLoading = true) => {
     if (!user?.id) return;
 
-    setIsLoadingChats(true); // ✅ Set loading true sebelum fetch
+    if (showLoading) setIsLoadingChats(true); // ✅ Set loading true sebelum fetch
 
     const { data: chats, error: chatError } = await supabase
       .from("chats")
@@ -248,10 +254,10 @@ export default function ChatPage() {
     });
 
     setRecentChats(sortedRecent);
-    setIsLoadingChats(false); // ✅ Set loading false setelah selesai
+    if (showLoading) setIsLoadingChats(false); // ✅ Set loading false setelah selesai
   };
   useEffect(() => {
-    fetchRecentChatsWithUnread();
+    fetchRecentChatsWithUnread(true);
   }, [user?.id]);
 
   // --- Subscribe to realtime untuk update unread badge ---
@@ -295,7 +301,7 @@ export default function ChatPage() {
                 updatedChats.unshift(chat);
                 return updatedChats;
               } else {
-                fetchRecentChatsWithUnread();
+                fetchRecentChatsWithUnread(false);
                 return prevChats;
               }
             });
@@ -356,13 +362,15 @@ export default function ChatPage() {
     setTotalUnreadMessages((prev) => Math.max(0, prev - unreadCount));
 
     setTimeout(() => {
-      fetchRecentChatsWithUnread();
+      fetchRecentChatsWithUnread(false);
     }, 300);
   };
 
   // --- Fetch messages dan realtime subscription untuk chat terpilih ---
   useEffect(() => {
     if (!selectedUser) return;
+
+    isInitialScroll.current = true; // reset scroll state
 
     let subscription = null;
     let currentChatId = null;
@@ -422,8 +430,9 @@ export default function ChatPage() {
         fetchTotalUnread();
       }, 500);
 
-      subscription = supabase
-        .channel(`chat-${currentChatId}`)
+      activeChannelRef.current = supabase.channel(`chat-${currentChatId}`);
+
+      subscription = activeChannelRef.current
         .on(
           "postgres_changes",
           {
@@ -460,6 +469,16 @@ export default function ChatPage() {
             );
           },
         )
+        .on("broadcast", { event: "typing" }, (payload) => {
+          if (payload.payload.sender_id !== user.id) {
+            setIsTyping(true);
+            if (typingTimeoutRef.current)
+              clearTimeout(typingTimeoutRef.current);
+            typingTimeoutRef.current = setTimeout(() => {
+              setIsTyping(false);
+            }, 3000);
+          }
+        })
         .subscribe();
     };
 
@@ -473,7 +492,12 @@ export default function ChatPage() {
   // Auto scroll ke bawah saat ada pesan baru
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      if (isInitialScroll.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+        isInitialScroll.current = false;
+      } else {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      }
     }
   }, [messages]);
 
@@ -536,6 +560,19 @@ export default function ChatPage() {
     setMessages((prevMessages) =>
       prevMessages.filter((msg) => msg.id !== messageId),
     );
+  };
+
+  // --- Typing handler ---
+  const handleTyping = () => {
+    if (activeChannelRef.current) {
+      activeChannelRef.current
+        .send({
+          type: "broadcast",
+          event: "typing",
+          payload: { sender_id: user.id },
+        })
+        .catch(() => {});
+    }
   };
 
   // --- Hapus chat beserta semua pesannya ---
@@ -800,6 +837,12 @@ export default function ChatPage() {
           />
         </div>
 
+        {isTyping && (
+          <div className="px-4 py-2 bg-transparent text-sm text-gray-500 italic shrink-0">
+            {selectedUser?.full_name} sedang mengetik...
+          </div>
+        )}
+
         <div className="z-20 w-full shrink-0">
           <ChatInput
             input={input}
@@ -807,6 +850,7 @@ export default function ChatPage() {
             sendMessage={sendMessage}
             handleSendTask={handleSendTask}
             selectedUser={selectedUser}
+            onTyping={handleTyping}
           />
         </div>
       </div>

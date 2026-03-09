@@ -1,5 +1,5 @@
 // src/components/chats/ChatInput.jsx
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { Send, Paperclip } from "lucide-react";
 
 export default function ChatInput({
@@ -8,8 +8,16 @@ export default function ChatInput({
   sendMessage,
   handleSendTask,
   selectedUser,
+  onTyping,
 }) {
   const textareaRef = useRef(null);
+
+  // Focus when selectedUser changes
+  useEffect(() => {
+    if (selectedUser && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [selectedUser]);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -49,7 +57,10 @@ export default function ChatInput({
       <textarea
         ref={textareaRef}
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={(e) => {
+          setInput(e.target.value);
+          if (onTyping) onTyping();
+        }}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
